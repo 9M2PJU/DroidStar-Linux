@@ -124,13 +124,15 @@ jobs:
           sudo snap install lxd || true
           sudo snap install snapcraft --classic || true
           sudo lxd init --auto || true
+          sudo usermod -a -G lxd $USER
+          sg lxd -c 'lxc list' || true
 
       - name: Build Snap
         env:
           SHORT_SHA: ${{ github.sha }}
         run: |
           SHORT_SHA_7=${GITHUB_SHA::7}
-          SHORT_SHA="${SHORT_SHA_7}" bash -eux .github/scripts/build_snap.sh
+          SHORT_SHA="${SHORT_SHA_7}" sg lxd -c "bash -eux .github/scripts/build_snap.sh"
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
