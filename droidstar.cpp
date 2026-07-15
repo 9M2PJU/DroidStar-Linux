@@ -772,6 +772,7 @@ void DroidStar::process_settings()
 	m_dstarusertxt = m_settings->value("USRTXT").toString().simplified();
 	m_xrf2ref = (m_settings->value("XRF2REF").toString().simplified() == "true") ? true : false;
 	m_vocoder = m_settings->value("VOCODER", "Software vocoder").toString().simplified();
+	if(m_vocoder.isEmpty()) m_vocoder = "Software vocoder";
 	m_localhosts = m_settings->value("LOCALHOSTS").toString();
 
 	m_modemRxFreq = m_settings->value("ModemRxFreq", "438800000").toString().simplified();

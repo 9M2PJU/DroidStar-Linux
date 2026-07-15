@@ -107,7 +107,7 @@ public slots:
 	void set_toggletx(bool x) { m_toggletx = x; save_settings(); }
 	void set_xrf2ref(bool x) { m_xrf2ref = x; save_settings(); }
 	void set_ipv6(bool ipv6) { m_ipv6 = ipv6; save_settings(); }
-	void set_vocoder(QString vocoder) { m_vocoder = vocoder; save_settings(); }
+	void set_vocoder(QString vocoder) { if(!vocoder.isEmpty()) { m_vocoder = vocoder; save_settings(); } }
 	QString get_vocoder() { return m_vocoder; }
 	void set_modem(QString modem) { m_modem = modem; }
 	void set_playback(QString playback) { m_playback = playback; }

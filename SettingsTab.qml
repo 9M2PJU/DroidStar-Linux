@@ -135,7 +135,8 @@ Item {
 							width: parent.width - 80 - main.sp2
 							height: 36
 							onCurrentIndexChanged: {
-								droidstar.set_vocoder(currentText)
+								if (currentText.length > 0)
+									droidstar.set_vocoder(currentText)
 							}
 						}
 					}
