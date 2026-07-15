@@ -3,7 +3,7 @@
 **Unofficial Linux packaging of DroidStar by 9M2PJU**
 
 [![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-9M2PJU-orange?style=for-the-badge&logo=buy-me-a-coffee)](https://www.buymeacoffee.com/9m2pju)
-[![Wise](https://img.shields.io/badge/Wise-Pay%209M2PJU-green?style=for-the-badge&logo=wise)](https://wise.com/pay/me/faizulz13)
+[![Wise](https://img.shields.io/badge/Wise-Donate%209M2PJU-green?style=for-the-badge&logo=wise)](https://wise.com/pay/me/faizulz13)
 
 This is an unofficial Linux build and packaging of [DroidStar](https://github.com/nostar/DroidStar), the amateur radio digital modes client by Doug McLain AD8DP. All credit for the original software goes to the original author. This repository adds automated CI/CD builds for Linux on both **amd64** and **arm64** architectures, producing multiple package formats for easy installation across distributions.
 
