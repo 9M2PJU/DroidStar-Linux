@@ -58,7 +58,8 @@ cat > "${MANIFEST}" <<EOF
       ],
       "config-opts": [
         "-DCMAKE_BUILD_TYPE=Release",
-        "-DCMAKE_INSTALL_PREFIX=/app"
+        "-DCMAKE_INSTALL_PREFIX=/app",
+        "-DSKIP_QT_DEPLOY=ON"
       ]
     }
   ]

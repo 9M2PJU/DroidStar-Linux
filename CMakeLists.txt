@@ -239,9 +239,12 @@ install(TARGETS DroidStar
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 
-qt_generate_deploy_app_script(
-    TARGET DroidStar
-    OUTPUT_SCRIPT deploy_script
-    NO_UNSUPPORTED_PLATFORM_ERROR
-)
-install(SCRIPT ${deploy_script})
+option(SKIP_QT_DEPLOY "Skip Qt6 deploy script (use when runtime provides Qt, e.g. Flatpak)" OFF)
+if(NOT SKIP_QT_DEPLOY)
+    qt_generate_deploy_app_script(
+        TARGET DroidStar
+        OUTPUT_SCRIPT deploy_script
+        NO_UNSUPPORTED_PLATFORM_ERROR
+    )
+    install(SCRIPT ${deploy_script})
+endif()
