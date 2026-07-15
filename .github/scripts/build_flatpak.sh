@@ -17,14 +17,30 @@ mkdir -p "${DIST}"
 # Install flatpak and flatpak-builder if not present
 if ! command -v flatpak >/dev/null 2>&1; then
   echo "flatpak not found; installing..."
-  sudo apt-get update -qq
-  sudo apt-get install -y flatpak flatpak-builder
+  for fa_attempt in 1 2 3; do
+    echo "=== apt-get install flatpak attempt ${fa_attempt}/3 ==="
+    sudo apt-get update -qq && sudo apt-get install -y flatpak flatpak-builder && break
+    echo "=== apt-get install failed, retrying ==="
+    sleep 5
+    if [ ${fa_attempt} -eq 3 ]; then
+      echo "=== FATAL: Failed to install flatpak after 3 attempts ==="
+      exit 1
+    fi
+  done
 fi
 
 # Add the flathub remote and install the KDE SDK runtime (includes Qt6)
 flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo || true
-flatpak install --user --noninteractive --or-update flathub org.kde.Sdk//6.8 || true
-flatpak install --user --noninteractive --or-update flathub org.kde.Platform//6.8 || true
+for sdk_attempt in 1 2 3; do
+  echo "=== flatpak install KDE SDK attempt ${sdk_attempt}/3 ==="
+  flatpak install --user --noninteractive --or-update flathub org.kde.Sdk//6.8 && \
+  flatpak install --user --noninteractive --or-update flathub org.kde.Platform//6.8 && break
+  echo "=== flatpak install failed, retrying ==="
+  sleep 5
+  if [ ${sdk_attempt} -eq 3 ]; then
+    echo "=== WARNING: Failed to install KDE SDK after 3 attempts ==="
+  fi
+done
 
 # Generate the Flatpak manifest
 MANIFEST="${PWD}/.github/flatpak/${APP_ID}.json"

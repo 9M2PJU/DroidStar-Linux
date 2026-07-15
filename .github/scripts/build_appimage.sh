@@ -33,7 +33,21 @@ cp "${APPDIR}/usr/share/applications/droidstar-9m2pju.desktop" "${APPDIR}/droids
 
 # Download appimagetool (linuxdeploy not needed — libs are already bundled in the AppDir)
 APPIMAGETOOL="${DIST}/appimagetool-${AI_ARCH}.AppImage"
-wget -q -O "${APPIMAGETOOL}" "https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-${AI_ARCH}.AppImage"
+for dl_attempt in 1 2 3; do
+  echo "=== Downloading appimagetool attempt ${dl_attempt}/3 ==="
+  if wget --tries=3 --waitretry=5 --timeout=30 -q -O "${APPIMAGETOOL}" \
+    "https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-${AI_ARCH}.AppImage"; then
+    echo "=== appimagetool downloaded successfully ==="
+    break
+  fi
+  echo "=== Download failed, retrying ==="
+  rm -f "${APPIMAGETOOL}"
+  sleep 5
+  if [ ${dl_attempt} -eq 3 ]; then
+    echo "=== FATAL: Failed to download appimagetool after 3 attempts ==="
+    exit 1
+  fi
+done
 chmod +x "${APPIMAGETOOL}"
 
 APPIMAGE_FILE="${DIST}/${APP_NAME}-9M2PJU-${VERSION}-${ARCH}.AppImage"
