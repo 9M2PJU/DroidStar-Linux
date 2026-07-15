@@ -737,11 +737,20 @@ Item {
 					}
 
 					// Level meter
+					Text {
+						text: "Audio Level"
+						color: main.tTextMuted
+						font.pixelSize: 11
+						leftPadding: main.sp1
+					}
 					Rectangle {
 						width: parent.width
-						height: 8
+						height: 16
 						color: main.tBg
 						radius: 4
+						border.color: main.tBorder
+						border.width: 1
+						clip: true
 						Rectangle {
 							id: _levelMeter
 							width: 0
