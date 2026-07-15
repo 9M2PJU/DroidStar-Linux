@@ -56,8 +56,16 @@ jobs:
           retention-days: 14
 
   build-arch:
-    name: Build Arch Linux pkg (x86_64)
+    name: Build Arch Linux pkg (${{ matrix.arch }})
     runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x86_64
+            platform: linux/amd64
+          - arch: aarch64
+            platform: linux/arm64
 
     steps:
       - name: Checkout
@@ -65,19 +73,23 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Set up QEMU for arm64
+        if: matrix.arch == 'aarch64'
+        uses: docker/setup-qemu-action@v3
+
       - name: Build in Arch Linux container
         run: |
           set -euo pipefail
-          docker run --rm --platform linux/amd64 \
+          docker run --rm --platform ${{ matrix.platform }} \
             -v "$PWD":/src -w /src \
-            -e ARCH=x86_64 \
+            -e ARCH=${{ matrix.arch }} \
             -e SHORT_SHA=${GITHUB_SHA::7} \
             archlinux:latest bash -eux /src/.github/scripts/build_arch.sh
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: DroidStar-9M2PJU-arch-x86_64
+          name: DroidStar-9M2PJU-arch-${{ matrix.arch }}
           path: dist/*.pkg.tar.zst
           if-no-files-found: warn
           retention-days: 14
@@ -192,7 +204,7 @@ jobs:
 
           - **.deb** - Debian/Ubuntu (amd64, arm64)
           - **.rpm** - Fedora/RHEL/openSUSE (amd64, arm64)
-          - **.pkg.tar.zst** - Arch Linux (x86_64)
+          - **.pkg.tar.zst** - Arch Linux (x86_64, aarch64)
           - **.AppImage** - Portable single-file (amd64, arm64)
           - **.flatpak** - Flatpak bundle (x86_64) *(may not be available yet)*
           - **.snap** - Snap package (x86_64) *(may not be available yet)*
