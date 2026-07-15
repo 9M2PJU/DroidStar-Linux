@@ -130,7 +130,14 @@ Item {
 						width: parent.width
 						spacing: main.sp2
 						Text { text: "Vocoder"; color: main.tTextMuted; font.pixelSize: 13; width: 80; verticalAlignment: Text.AlignVCenter }
-						ComboBox { id: _comboVocoder; width: parent.width - 80 - main.sp2; height: 36 }
+						ComboBox {
+							id: _comboVocoder
+							width: parent.width - 80 - main.sp2
+							height: 36
+							onCurrentIndexChanged: {
+								droidstar.set_vocoder(currentText)
+							}
+						}
 					}
 					Row {
 						width: parent.width

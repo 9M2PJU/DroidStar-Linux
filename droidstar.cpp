@@ -707,6 +707,7 @@ void DroidStar::save_settings()
 	m_settings->setValue("TXTOGGLE", m_toggletx ? "true" : "false");
 	m_settings->setValue("XRF2REF", m_xrf2ref ? "true" : "false");
 	m_settings->setValue("USRTXT", m_dstarusertxt);
+	m_settings->setValue("VOCODER", m_vocoder);
 
 	m_settings->setValue("ModemRxFreq", m_modemRxFreq);
 	m_settings->setValue("ModemTxFreq", m_modemTxFreq);
@@ -770,6 +771,7 @@ void DroidStar::process_settings()
 	m_toggletx = (m_settings->value("TXTOGGLE", "true").toString().simplified() == "true") ? true : false;
 	m_dstarusertxt = m_settings->value("USRTXT").toString().simplified();
 	m_xrf2ref = (m_settings->value("XRF2REF").toString().simplified() == "true") ? true : false;
+	m_vocoder = m_settings->value("VOCODER", "Software vocoder").toString().simplified();
 	m_localhosts = m_settings->value("LOCALHOSTS").toString();
 
 	m_modemRxFreq = m_settings->value("ModemRxFreq", "438800000").toString().simplified();

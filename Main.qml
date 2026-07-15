@@ -87,7 +87,7 @@ ApplicationWindow {
 	MessageDialog {
 		id: vocoderDialog
 		title: "No vocoder found"
-		text: "No hardware or software vocoder found for this mode. You can still connect, but you will not RX or TX any audio. See the project website (url on the About tab) for info on loading a sw vocoder, or use a USB AMBE dongle (and an OTG adapter on Android devices)"
+		text: "No vocoder is selected. Go to Settings and set Vocoder to 'Software vocoder' (it is built into the app — no download needed). You can also use a USB AMBE dongle."
 	}
 	MessageDialog {
 		id: updateAvailableDialog
@@ -374,6 +374,7 @@ ApplicationWindow {
             settingsTab.comboModem.model = droidstar.get_modems();
             settingsTab.comboPlayback.model = droidstar.get_playbacks();
             settingsTab.comboCapture.model = droidstar.get_captures();
+            settingsTab.comboVocoder.currentIndex = settingsTab.comboVocoder.find(droidstar.get_vocoder());
 			mainTab.data1.font.family = droidstar.get_monofont();
 			mainTab.data2.font.family = droidstar.get_monofont();
 			mainTab.data3.font.family = droidstar.get_monofont();
