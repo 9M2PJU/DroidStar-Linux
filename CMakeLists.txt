@@ -3,10 +3,12 @@ project(DroidStar VERSION 1.0 LANGUAGES C CXX)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-if(IOS)
+if(ANDROID)
+    find_package(Qt6 6.5 REQUIRED COMPONENTS Core Gui Multimedia Network Quick QuickControls2 SerialPort CorePrivate)
+elseif(IOS)
     find_package(Qt6 6.5 REQUIRED COMPONENTS Core Gui Multimedia Network Quick QuickControls2)
 else()
-    find_package(Qt6 6.5 REQUIRED COMPONENTS Core Gui Multimedia Network Quick QuickControls2 SerialPort CorePrivate)
+    find_package(Qt6 6.5 REQUIRED COMPONENTS Core Gui Multimedia Network Quick QuickControls2 SerialPort)
 endif()
 
 qt_standard_project_setup(REQUIRES 6.5)
@@ -211,7 +213,16 @@ if(FALSE) # set TRUE for flite
     )
 endif()
 
-if(TRUE) # set TRUE for md380_vocoder
+# md380_vocoder embeds 32-bit ARM firmware objects (elf32-littlearm) and only
+# links/runs natively on 32-bit ARM (armhf). It cannot be linked into amd64 or
+# aarch64 binaries. Override with -DUSE_MD380_VOCODER=ON/OFF as needed.
+if(CMAKE_SYSTEM_PROCESSOR MATCHES "^arm" AND NOT IOS)
+    option(USE_MD380_VOCODER "Use md380_vocoder (ARM 32-bit only)" ON)
+else()
+    option(USE_MD380_VOCODER "Use md380_vocoder (ARM 32-bit only)" OFF)
+endif()
+
+if(USE_MD380_VOCODER)
     target_compile_definitions(DroidStar PRIVATE
         USE_MD380_VOCODER
     )

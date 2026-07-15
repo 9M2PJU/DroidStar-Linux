@@ -1,0 +1,205 @@
+name: Build and Release
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build ${{ matrix.arch }} (deb/rpm/AppImage/tarball)
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: amd64
+            runner: ubuntu-24.04
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Build in Ubuntu 25.04 container (Qt 6.8)
+        run: |
+          set -euo pipefail
+          docker run --rm --platform linux/${{ matrix.arch }} \
+            -v "$PWD":/src -w /src \
+            -e ARCH=${{ matrix.arch }} \
+            -e SHORT_SHA=${GITHUB_SHA::7} \
+            ubuntu:25.04 bash -eux /src/.github/scripts/build_packages.sh
+
+      - name: Install FUSE for AppImage
+        run: sudo apt-get update -qq && sudo apt-get install -y libfuse2t64
+
+      - name: Build AppImage on runner
+        run: |
+          ARCH=${{ matrix.arch }} SHORT_SHA=${GITHUB_SHA::7} bash -eux .github/scripts/build_appimage.sh
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: DroidStar-9M2PJU-${{ matrix.arch }}
+          path: |
+            dist/*.deb
+            dist/*.rpm
+            dist/*.AppImage
+            dist/*.tar.gz
+          if-no-files-found: warn
+          retention-days: 14
+
+  build-arch:
+    name: Build ${{ matrix.arch }} (Arch Linux pkg)
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x86_64
+            runner: ubuntu-24.04
+          - arch: aarch64
+            runner: ubuntu-24.04-arm
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Build in Arch Linux container
+        run: |
+          set -euo pipefail
+          docker run --rm --platform linux/${{ matrix.arch == 'x86_64' && 'amd64' || 'arm64' }} \
+            -v "$PWD":/src -w /src \
+            -e ARCH=${{ matrix.arch }} \
+            -e SHORT_SHA=${GITHUB_SHA::7} \
+            archlinux:latest bash -eux /src/.github/scripts/build_arch.sh
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: DroidStar-9M2PJU-arch-${{ matrix.arch }}
+          path: dist/*.pkg.tar.zst
+          if-no-files-found: warn
+          retention-days: 14
+
+  build-flatpak:
+    name: Build Flatpak
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Build Flatpak bundle
+        env:
+          SHORT_SHA: ${{ github.sha }}
+        run: |
+          SHORT_SHA_7=${GITHUB_SHA::7}
+          SHORT_SHA="${SHORT_SHA_7}" bash -eux .github/scripts/build_flatpak.sh
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: DroidStar-9M2PJU-flatpak
+          path: dist/*.flatpak
+          if-no-files-found: warn
+          retention-days: 14
+
+  build-snap:
+    name: Build Snap
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install snapcraft
+        run: |
+          sudo snap install snapcraft --classic || true
+
+      - name: Build Snap
+        env:
+          SHORT_SHA: ${{ github.sha }}
+        run: |
+          SHORT_SHA_7=${GITHUB_SHA::7}
+          SHORT_SHA="${SHORT_SHA_7}" bash -eux .github/scripts/build_snap.sh
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: DroidStar-9M2PJU-snap
+          path: dist/*.snap
+          if-no-files-found: warn
+          retention-days: 14
+
+  release:
+    name: Publish Release
+    needs: [build, build-arch, build-flatpak, build-snap]
+    runs-on: ubuntu-24.04
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: List artifacts
+        run: ls -lhR artifacts
+
+      - name: Determine release tag
+        id: tag
+        run: |
+          SHORT_SHA=${GITHUB_SHA::7}
+          echo "tag=DroidStar-9M2PJU-${SHORT_SHA}" >> "$GITHUB_OUTPUT"
+          echo "name=DroidStar-9M2PJU ${SHORT_SHA}" >> "$GITHUB_OUTPUT"
+
+      - name: Delete existing release with same tag (rebuild on every push)
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release delete "${{ steps.tag.outputs.tag }}" --yes --cleanup-tag || true
+
+      - name: Create release and upload assets
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "${{ steps.tag.outputs.tag }}" \
+            --title "${{ steps.tag.outputs.name }}" \
+            --notes "Automated 9M2PJU Linux build from commit ${GITHUB_SHA::7}.
+
+          ## Packages included
+
+          - **.deb** - Debian/Ubuntu (amd64, arm64)
+          - **.rpm** - Fedora/RHEL/openSUSE (amd64, arm64)
+          - **.pkg.tar.zst** - Arch Linux (x86_64, aarch64)
+          - **.AppImage** - Portable single-file (amd64, arm64)
+          - **.flatpak** - Flatpak bundle (x86_64)
+          - **.snap** - Snap package (x86_64)
+          - **.tar.gz** - Portable tarball (amd64, arm64)
+
+          Rebuilt automatically on every push to main.
+
+          All credit for the original DroidStar software goes to Doug McLain AD8DP.
+          Original project: https://github.com/nostar/DroidStar" \
+            --target main \
+            artifacts/*

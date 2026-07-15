@@ -37,11 +37,15 @@ Item {
 				width: helpText.width
 				wrapMode: Text.WordWrap
 				color: "white"
-				text: qsTr(	"\nDROID-Star git build " + droidstar.get_software_build() +
+				text: qsTr(	"\nDroidStar-9M2PJU git build " + droidstar.get_software_build() +
 						   "\nPlatform:\t" + droidstar.get_platform() +
 						   "\nArchitecture:\t" + droidstar.get_arch() +
 						   "\nBuild ABI:\t" + droidstar.get_build_abi() +
-						   "\n\nProject page: https://github.com/nostar/DroidStar" +
+						   "\n\n9M2PJU Linux build (amd64/arm64) - .deb / .rpm / .AppImage" +
+						   "\nPackaged for Linux by 9M2PJU. All credit for the original" +
+						   "\nDroidStar software goes to its author, Doug McLain AD8DP." +
+						   "\nThis is an unofficial Linux packaging of the upstream project." +
+						   "\n\nOriginal project page: https://github.com/nostar/DroidStar" +
 						   "\n\nCopyright (C) 2019-2026 Doug McLain AD8DP\n" +
 							"This program is free software; " +
 							"you can redistribute it and/or modify it under the terms of the GNU General " +

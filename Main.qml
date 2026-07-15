@@ -26,7 +26,7 @@ ApplicationWindow {
 	visible: true
 	width: 340
 	height: 480
-	title: qsTr("DroidStar")
+	title: qsTr("DroidStar-9M2PJU")
 
 	palette.window: "#252424"
 	palette.button: "#252424"
