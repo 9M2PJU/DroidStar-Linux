@@ -18,29 +18,49 @@ export DEBIAN_FRONTEND=noninteractive
 
 echo "=== Installing build dependencies ==="
 
-# Retry apt-get update with fallback mirrors (ports.ubuntu.com can be flaky on ARM64)
-apt_retry() {
-  for attempt in 1 2 3 4 5; do
-    echo "apt-get update attempt ${attempt}/5..."
-    if apt-get update -qq; then
-      echo "apt-get update succeeded on attempt ${attempt}"
+# ports.ubuntu.com is flaky from GitHub Actions ARM64 runners.
+# Switch to a more reliable mirror before attempting apt-get update.
+if [ "$(dpkg --print-architecture)" = "arm64" ]; then
+  echo "=== Switching ARM64 mirror to de.ports.ubuntu.com ==="
+  sed -i 's|http://ports.ubuntu.com/ubuntu-ports|http://de.ports.ubuntu.com/ubuntu-ports|g' \
+    /etc/apt/sources.list /etc/apt/sources.list.d/*.list 2>/dev/null || true
+fi
+
+# apt-get update returns exit 0 even when all fetches fail (treats them as warnings).
+# We must actually verify that package indexes were downloaded.
+apt_update_retry() {
+  local mirrors=(
+    ""                                    # current mirror (already set above)
+    "http://de.ports.ubuntu.com/ubuntu-ports"
+    "http://ports.ubuntu.com/ubuntu-ports"
+    "http://ftp.ports.ubuntu.com/ubuntu-ports"
+    "http://mirror.freedif.org/ports.ubuntu.com/ubuntu-ports"
+  )
+  local mirror_idx=0
+  for attempt in 1 2 3 4 5 6 7 8; do
+    echo "=== apt-get update attempt ${attempt}/8 (mirror: ${mirrors[$mirror_idx]:-default}) ==="
+    apt-get update 2>&1 || true
+    # Verify that at least the main index was actually fetched
+    if apt-cache show build-essential >/dev/null 2>&1; then
+      echo "=== apt-get update succeeded (build-essential is available) ==="
       return 0
     fi
-    echo "apt-get update failed on attempt ${attempt}, retrying in 10s..."
-    sleep 10
+    echo "=== apt-get update did not fetch indexes properly, retrying ==="
+    # Try next mirror
+    mirror_idx=$(( (mirror_idx + 1) % ${#mirrors[@]} ))
+    local next_mirror="${mirrors[$mirror_idx]}"
+    if [ -n "$next_mirror" ]; then
+      echo "=== Switching to mirror: ${next_mirror} ==="
+      sed -i "s|http://[^ ]*ubuntu-ports|${next_mirror}|g" \
+        /etc/apt/sources.list /etc/apt/sources.list.d/*.list 2>/dev/null || true
+    fi
+    sleep 5
   done
-  echo "=== apt-get update failed after 5 attempts, trying fallback mirror ==="
-  # Fallback: switch to a different mirror
-  if [ "$(dpkg --print-architecture)" = "arm64" ]; then
-    sed -i 's|http://ports.ubuntu.com/ubuntu-ports|http://de.ports.ubuntu.com/ubuntu-ports|g' /etc/apt/sources.list /etc/apt/sources.list.d/*.list 2>/dev/null || true
-  fi
-  apt-get update -qq || {
-    echo "=== Fallback mirror also failed, final attempt ==="
-    apt-get update -qq
-  }
+  echo "=== FATAL: apt-get update failed after 8 attempts ==="
+  return 1
 }
 
-apt_retry
+apt_update_retry || exit 1
 
 apt-get install -y --no-install-recommends \
   build-essential cmake git ca-certificates file \
