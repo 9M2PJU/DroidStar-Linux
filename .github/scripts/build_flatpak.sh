@@ -78,7 +78,7 @@ flatpak-builder --user --install "${BUILD_DIR}" "${MANIFEST}" || {
 
 # Bundle into a .flatpak file
 FLATPAK_FILE="${DIST}/${APP_NAME}-9M2PJU-${VERSION}.flatpak"
-flatpak build-bundle --user "${HOME}/.local/share/flatpak" "${FLATPAK_FILE}" "${APP_ID}" || {
+flatpak build-bundle "${HOME}/.local/share/flatpak" "${FLATPAK_FILE}" "${APP_ID}" || {
   echo "flatpak build-bundle failed"
   exit 1
 }
