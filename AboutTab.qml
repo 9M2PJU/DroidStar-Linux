@@ -55,7 +55,7 @@ Item {
 					Image {
 						anchors.fill: parent
 						anchors.margins: main.sp2
-						source: "qrc:/DroidStar/images/droidstar.png"
+						source: "qrc:/qt/qml/DroidStarApp/images/droidstar.png"
 						fillMode: Image.PreserveAspectFit
 						smooth: true
 					}

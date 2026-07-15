@@ -102,6 +102,7 @@ qt_add_qml_module(DroidStar
     QML_FILES LogTab.qml
     QML_FILES HostsTab.qml
     QML_FILES AboutTab.qml
+    RESOURCES images/droidstar.png
 )
 
 execute_process(
