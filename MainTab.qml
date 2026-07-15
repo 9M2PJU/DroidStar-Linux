@@ -24,6 +24,38 @@ Item {
 	property int rows: 18
 	property bool tts: false
 
+	focus: true
+	Keys.onPressed: (event) => {
+		if (event.key === Qt.Key_Escape) {
+			if (_connectbutton.text === "Disconnect") {
+				_connectbutton.clicked()
+			}
+			event.accepted = true
+		}
+		else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+			_connectbutton.clicked()
+			event.accepted = true
+		}
+	}
+	Keys.onSpacePressed: (event) => {
+		if (_buttonTX.enabled) {
+			if (settingsTab.toggleTX.checked) {
+				_buttonTX.clicked()
+			} else {
+				_buttonTX.pressed()
+			}
+		}
+		event.accepted = true
+	}
+	Keys.onReleased: (event) => {
+		if (event.key === Qt.Key_Space) {
+			if (_buttonTX.enabled && !settingsTab.toggleTX.checked) {
+				_buttonTX.released()
+			}
+			event.accepted = true
+		}
+	}
+
 	onWidthChanged: updateLayout()
 	onHeightChanged: updateLayout()
 

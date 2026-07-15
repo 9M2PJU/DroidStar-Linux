@@ -356,6 +356,7 @@ ApplicationWindow {
 						anchors.fill: parent
 						onClicked: {
 							navBar.currentIndex = index
+							if (index === 0) mainTab.forceActiveFocus()
 						}
 					}
 				}
