@@ -68,6 +68,21 @@ parts:
       - cmake
       - git
       - pkg-config
+      - libglib2.0-dev
+      - libgl-dev
+      - libvulkan-dev
+      - libxkbcommon-dev
+      - libegl-dev
+      - libfontconfig1-dev
+      - libfreetype-dev
+      - libharfbuzz-dev
+      - libpulse-dev
+      - libasound2-dev
+      - libavcodec-dev
+      - libavformat-dev
+      - libavutil-dev
+      - libswresample-dev
+      - libswscale-dev
     build-snaps:
       - kde-qt6-core24-sdk
     stage-packages:
