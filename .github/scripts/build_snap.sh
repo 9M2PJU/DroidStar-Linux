@@ -48,7 +48,6 @@ apps:
       - wayland
       - opengl
       - home
-    desktop: usr/share/applications/droidstar-9m2pju.desktop
 
 parts:
   droidstar:
