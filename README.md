@@ -440,8 +440,18 @@ snap run droidstar-9m2pju                      # if installed via Snap
 3. Select a **mode** (M17, DMR, D-STAR, YSF, P25, NXDN, or AllStar)
 4. Choose a **reflector/host** from the dropdown
 5. Select the **module** (A-Z for D-STAR, talkgroup for DMR)
-6. Click **Connect**
+6. Click **Connect** or press **Enter**
 7. Press **PTT** or use **Spacebar** to transmit
+
+### Keyboard Shortcuts
+
+| Key | Action |
+|-----|--------|
+| **Enter** | Connect / Disconnect |
+| **Esc** | Disconnect |
+| **Space** | Push to Talk (press and hold) or toggle TX (if TX Toggle is enabled in Settings) |
+
+Keyboard shortcuts work on the Main tab. Click the Main tab to ensure it has keyboard focus.
 
 ---
 

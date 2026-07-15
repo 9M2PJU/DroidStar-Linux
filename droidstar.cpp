@@ -29,8 +29,30 @@
 #include <QFont>
 #include <QFontDatabase>
 #include <QSslSocket>
+#include <QDesktopServices>
+#include <QProcess>
+#include <QUrl>
 #include <cstring>
 #include <fcntl.h>
+
+void DroidStar::open_url(const QString &url)
+{
+	QUrl qurl(url);
+	if(!qurl.isValid() || qurl.scheme().isEmpty()){
+		qurl = QUrl::fromUserInput(url);
+	}
+	if(!QDesktopServices::openUrl(qurl)){
+#ifdef Q_OS_LINUX
+		QStringList args;
+		args << qurl.toString();
+		if(!QProcess::startDetached("xdg-open", args)){
+			args.clear();
+			args << qurl.toString();
+			QProcess::startDetached("x-www-browser", args);
+		}
+#endif
+	}
+}
 
 DroidStar::DroidStar(QObject *parent) :
 	QObject(parent),

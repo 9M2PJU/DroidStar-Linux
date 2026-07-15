@@ -65,6 +65,7 @@ signals:
     void debug_changed(bool);
     void update_devices();
 public slots:
+	void open_url(const QString &url);
 	void set_callsign(const QString &callsign) {  m_callsign = callsign.simplified(); save_settings(); }
 	void set_dmrtgid(const QString &dmrtgid) { m_dmr_destid = dmrtgid.simplified().toUInt(); save_settings(); }
 	void set_slot(const int slot) {emit slot_changed(slot); }

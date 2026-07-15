@@ -195,7 +195,7 @@ Item {
 					linkColor: main.tAccent
 					font.pixelSize: 14
 					textFormat: Text.RichText
-					onLinkActivated: Qt.openUrlExternally(link)
+					onLinkActivated: droidstar.open_url(link)
 				}
 
 				// --- Donation buttons card ---
@@ -232,7 +232,7 @@ Item {
 								horizontalAlignment: Text.AlignHCenter
 								verticalAlignment: Text.AlignVCenter
 							}
-							onClicked: Qt.openUrlExternally("https://www.buymeacoffee.com/9m2pju")
+							onClicked: droidstar.open_url("https://www.buymeacoffee.com/9m2pju")
 						}
 
 						Button {
@@ -252,7 +252,7 @@ Item {
 								horizontalAlignment: Text.AlignHCenter
 								verticalAlignment: Text.AlignVCenter
 							}
-							onClicked: Qt.openUrlExternally("https://wise.com/pay/me/faizulz13")
+							onClicked: droidstar.open_url("https://wise.com/pay/me/faizulz13")
 						}
 					}
 				}
@@ -265,7 +265,7 @@ Item {
 					linkColor: main.tAccent
 					font.pixelSize: 13
 					textFormat: Text.RichText
-					onLinkActivated: Qt.openUrlExternally(link)
+					onLinkActivated: droidstar.open_url(link)
 				}
 
 				// --- License ---
