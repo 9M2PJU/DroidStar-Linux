@@ -70,7 +70,7 @@ echo "=== Flatpak manifest written to ${MANIFEST} ==="
 # Build the flatpak
 BUILD_DIR="${PWD}/flatpak-build"
 rm -rf "${BUILD_DIR}"
-flatpak-builder --user --install --force "${BUILD_DIR}" "${MANIFEST}" || {
+flatpak-builder --user --install "${BUILD_DIR}" "${MANIFEST}" || {
   echo "flatpak-builder failed"
   exit 1
 }

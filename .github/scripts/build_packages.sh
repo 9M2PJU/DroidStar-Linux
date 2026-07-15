@@ -178,4 +178,7 @@ rm -rf "${STAGE_ROOT}"
 echo "=== Dist contents ==="
 ls -lh "${DIST}"
 
+# Fix permissions so the runner (non-root) can write to dist/ for AppImage build
+chmod -R 777 "${DIST}" 2>/dev/null || true
+
 echo "=== Done building ${APP_DISPLAY} for ${ARCH} ==="

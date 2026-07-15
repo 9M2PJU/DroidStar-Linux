@@ -56,16 +56,8 @@ jobs:
           retention-days: 14
 
   build-arch:
-    name: Build ${{ matrix.arch }} (Arch Linux pkg)
-    runs-on: ${{ matrix.runner }}
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - arch: x86_64
-            runner: ubuntu-24.04
-          - arch: aarch64
-            runner: ubuntu-24.04-arm
+    name: Build Arch Linux pkg (x86_64)
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Checkout
@@ -76,16 +68,16 @@ jobs:
       - name: Build in Arch Linux container
         run: |
           set -euo pipefail
-          docker run --rm --platform linux/${{ matrix.arch == 'x86_64' && 'amd64' || 'arm64' }} \
+          docker run --rm --platform linux/amd64 \
             -v "$PWD":/src -w /src \
-            -e ARCH=${{ matrix.arch }} \
+            -e ARCH=x86_64 \
             -e SHORT_SHA=${GITHUB_SHA::7} \
             archlinux:latest bash -eux /src/.github/scripts/build_arch.sh
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: DroidStar-9M2PJU-arch-${{ matrix.arch }}
+          name: DroidStar-9M2PJU-arch-x86_64
           path: dist/*.pkg.tar.zst
           if-no-files-found: warn
           retention-days: 14
@@ -93,6 +85,7 @@ jobs:
   build-flatpak:
     name: Build Flatpak
     runs-on: ubuntu-24.04
+    continue-on-error: true
 
     steps:
       - name: Checkout
@@ -118,6 +111,7 @@ jobs:
   build-snap:
     name: Build Snap
     runs-on: ubuntu-24.04
+    continue-on-error: true
 
     steps:
       - name: Checkout
@@ -125,9 +119,11 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Install snapcraft
+      - name: Install LXD and snapcraft
         run: |
+          sudo snap install lxd || true
           sudo snap install snapcraft --classic || true
+          sudo lxd init --auto || true
 
       - name: Build Snap
         env:
@@ -148,7 +144,7 @@ jobs:
     name: Publish Release
     needs: [build, build-arch, build-flatpak, build-snap]
     runs-on: ubuntu-24.04
-    if: github.ref == 'refs/heads/main'
+    if: always() && github.ref == 'refs/heads/main' && needs.build.result == 'success'
 
     steps:
       - name: Checkout
@@ -191,10 +187,10 @@ jobs:
 
           - **.deb** - Debian/Ubuntu (amd64, arm64)
           - **.rpm** - Fedora/RHEL/openSUSE (amd64, arm64)
-          - **.pkg.tar.zst** - Arch Linux (x86_64, aarch64)
+          - **.pkg.tar.zst** - Arch Linux (x86_64)
           - **.AppImage** - Portable single-file (amd64, arm64)
-          - **.flatpak** - Flatpak bundle (x86_64)
-          - **.snap** - Snap package (x86_64)
+          - **.flatpak** - Flatpak bundle (x86_64) *(may not be available yet)*
+          - **.snap** - Snap package (x86_64) *(may not be available yet)*
           - **.tar.gz** - Portable tarball (amd64, arm64)
 
           Rebuilt automatically on every push to main.
