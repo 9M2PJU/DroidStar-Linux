@@ -149,7 +149,7 @@ cd /src
 echo "=== Preparing AppImage AppDir ==="
 APPDIR="${DIST}/AppDir"
 rm -rf "${APPDIR}"
-mkdir -p "${APPDIR}/usr/bin" "${APPDIR}/usr/share/applications" "${APPDIR}/usr/share/icons/hicolor/256x256/apps"
+mkdir -p "${APPDIR}/usr/bin" "${APPDIR}/usr/lib" "${APPDIR}/usr/share/applications" "${APPDIR}/usr/share/icons/hicolor/256x256/apps"
 
 cp build/${APP_NAME} "${APPDIR}/usr/bin/"
 cat > "${APPDIR}/usr/share/applications/${PKG_NAME}.desktop" <<EOF
@@ -166,6 +166,72 @@ if [ -f /src/images/droidstar.png ]; then
   cp /src/images/droidstar.png "${APPDIR}/usr/share/icons/hicolor/256x256/apps/${PKG_NAME}.png"
   cp /src/images/droidstar.png "${APPDIR}/${PKG_NAME}.png"
 fi
+
+# Bundle Qt6 shared libraries and QML plugins into AppDir
+# (linuxdeploy on the runner can't strip Ubuntu 25.04 libs, so we bundle here)
+# Exclude system libraries (libc, libm, libstdc++, libgcc_s, ld-linux, etc.)
+# that must come from the host system to avoid glibc version conflicts.
+echo "=== Bundling Qt6 libraries into AppDir ==="
+LDD_LIBS=$(ldd "${APPDIR}/usr/bin/${APP_NAME}" | awk '{print $3}' | grep -v '^$' | sort -u)
+for lib in ${LDD_LIBS}; do
+  libname=$(basename "${lib}")
+  # Skip only the most fundamental system libraries that must match the host glibc/kernel
+  case "${libname}" in
+    libc.so.*|libm.so.*|libdl.so.*|libpthread.so.*|librt.so.*|libresolv.so.*|\
+    libstdc++.so.*|libgcc_s.so.*|ld-linux*|libmvec.so.*)
+      echo "Skipping system library: ${libname}"
+      continue
+      ;;
+  esac
+  if [ -f "${lib}" ]; then
+    echo "Bundling: ${libname}"
+    cp --preserve=links "${lib}" "${APPDIR}/usr/lib/" 2>/dev/null || true
+  fi
+done
+
+# Copy Qt6 plugins (platforms, imageformats, etc)
+QT_PLUGIN_DIR=$(find /usr/lib -type d -name "plugins" -path "*qt6*" 2>/dev/null | head -1)
+if [ -n "${QT_PLUGIN_DIR}" ]; then
+  mkdir -p "${APPDIR}/usr/plugins"
+  cp -a "${QT_PLUGIN_DIR}/." "${APPDIR}/usr/plugins/"
+fi
+
+# Copy Qt6 QML modules
+QML_DIR=$(find /usr/lib -type d -name "qml" -path "*qt6*" 2>/dev/null | head -1)
+if [ -n "${QML_DIR}" ]; then
+  mkdir -p "${APPDIR}/usr/qml"
+  cp -a "${QML_DIR}/." "${APPDIR}/usr/qml/"
+fi
+
+# Bundle dependencies of Qt plugins and QML modules (not just the main binary)
+echo "=== Bundling Qt plugin/QML dependencies ==="
+find "${APPDIR}/usr/plugins" "${APPDIR}/usr/qml" -type f -name "*.so" -exec ldd {} \; 2>/dev/null \
+  | awk '{print $3}' | grep -v '^$' | sort -u | while read -r lib; do
+  libname=$(basename "${lib}")
+  case "${libname}" in
+    libc.so.*|libm.so.*|libdl.so.*|libpthread.so.*|librt.so.*|libresolv.so.*|\
+    libstdc++.so.*|libgcc_s.so.*|ld-linux*|libmvec.so.*)
+      continue
+      ;;
+  esac
+  if [ -f "${lib}" ] && [ ! -f "${APPDIR}/usr/lib/${libname}" ]; then
+    echo "Bundling plugin dep: ${libname}"
+    cp --preserve=links "${lib}" "${APPDIR}/usr/lib/" 2>/dev/null || true
+  fi
+done
+
+# Create AppRun script at AppDir root
+cat > "${APPDIR}/AppRun" <<'RUNEOF'
+#!/usr/bin/env bash
+HERE="$(dirname "$(readlink -f "${0}")")"
+export LD_LIBRARY_PATH="${HERE}/usr/lib:${HERE}/usr/lib/x86_64-linux-gnu:${HERE}/usr/lib/aarch64-linux-gnu:${LD_LIBRARY_PATH}"
+export QT_PLUGIN_PATH="${HERE}/usr/plugins:${QT_PLUGIN_PATH}"
+export QML2_IMPORT_PATH="${HERE}/usr/qml:${QML2_IMPORT_PATH}"
+export QT_QPA_PLATFORM_PLUGIN_PATH="${HERE}/usr/plugins/platforms:${QT_QPA_PLATFORM_PLUGIN_PATH}"
+exec "${HERE}/usr/bin/DroidStar" "$@"
+RUNEOF
+chmod +x "${APPDIR}/AppRun"
+
 # Tar up the AppDir so the runner can build the AppImage outside the container
 tar czf "${DIST}/${APP_NAME}-9M2PJU-${ARCH}-AppDir.tar.gz" -C "${DIST}" AppDir
 rm -rf "${APPDIR}"

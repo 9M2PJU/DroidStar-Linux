@@ -31,27 +31,22 @@ tar xzf "${APPDIR_TAR}" -C "${DIST}"
 # appimagetool expects the desktop file at the AppDir root
 cp "${APPDIR}/usr/share/applications/droidstar-9m2pju.desktop" "${APPDIR}/droidstar-9m2pju.desktop"
 
-# Download linuxdeploy and appimagetool
-LINUXDEPLOY="${DIST}/linuxdeploy-${AI_ARCH}.AppImage"
+# Download appimagetool (linuxdeploy not needed — libs are already bundled in the AppDir)
 APPIMAGETOOL="${DIST}/appimagetool-${AI_ARCH}.AppImage"
-wget -q -O "${LINUXDEPLOY}" "https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-${AI_ARCH}.AppImage"
 wget -q -O "${APPIMAGETOOL}" "https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-${AI_ARCH}.AppImage"
-chmod +x "${LINUXDEPLOY}" "${APPIMAGETOOL}"
+chmod +x "${APPIMAGETOOL}"
 
 APPIMAGE_FILE="${DIST}/${APP_NAME}-9M2PJU-${VERSION}-${ARCH}.AppImage"
-export OUTPUT="${APPIMAGE_FILE}"
 export ARCH="${AI_ARCH}"
 
-# linuxdeploy bundles dependencies and calls appimagetool internally
-"${LINUXDEPLOY}" --appdir "${APPDIR}" \
-  --desktop-file "${APPDIR}/droidstar-9m2pju.desktop" \
-  --icon-file "${APPDIR}/droidstar-9m2pju.png" \
-  --output appimage || {
-    echo "linuxdeploy --output appimage failed; trying appimagetool directly"
-    "${APPIMAGETOOL}" -n "${APPDIR}" "${APPIMAGE_FILE}"
-  }
+# Build the AppImage directly with appimagetool
+# (Qt6 libs and QML plugins are already bundled in the AppDir from the container build)
+"${APPIMAGETOOL}" -n "${APPDIR}" "${APPIMAGE_FILE}" || {
+  echo "appimagetool failed"
+  exit 1
+}
 
-rm -f "${LINUXDEPLOY}" "${APPIMAGETOOL}"
+rm -f "${APPIMAGETOOL}"
 rm -rf "${APPDIR}" "${APPDIR_TAR}"
 
 echo "=== AppImage built: $(ls -lh ${APPIMAGE_FILE}) ==="
