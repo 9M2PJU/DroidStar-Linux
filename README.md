@@ -42,13 +42,13 @@ If you find this project useful, please consider supporting its development:
 
 This is an unofficial Linux build and packaging of [DroidStar](https://github.com/nostar/DroidStar), the amateur radio digital modes client by **Doug McLain AD8DP**. All credit for the original software goes to the original author.
 
-This repository adds automated CI/CD builds for Linux on both **amd64 (x86_64)** and **arm64 (aarch64)** architectures, producing **six** package formats for easy installation across all major Linux distributions:
+This repository adds automated CI/CD builds for Linux on both **amd64 (x86_64)** and **arm64 (aarch64)** architectures, producing **seven** package formats for easy installation across all major Linux distributions:
 
 | Format | Architectures | Target | Install Method |
 |--------|--------------|--------|----------------|
 | `.deb` | amd64, arm64 | Debian, Ubuntu, Mint, Pop!_OS | `apt install` |
 | `.rpm` | amd64, arm64 | Fedora, RHEL, CentOS, openSUSE | `dnf install` |
-| `.pkg.tar.zst` | x86_64 | Arch Linux, Manjaro, EndeavourOS | `pacman -U` |
+| `.pkg.tar.zst` | x86_64, aarch64 | Arch Linux, Manjaro, EndeavourOS | `pacman -U` |
 | `.AppImage` | amd64, arm64 | Any Linux (portable, no install) | Just run |
 | `.flatpak` | x86_64 | Any Linux with Flatpak | `flatpak install` |
 | `.snap` | x86_64 | Any Linux with Snap | `snap install` |
@@ -168,11 +168,16 @@ sudo zypper remove droidstar-9m2pju
 
 ### Arch Linux / Manjaro (.pkg.tar.zst)
 
-**Supported:** Arch Linux, Manjaro, EndeavourOS, Garuda, and any Arch-based distro (x86_64 only).
+**Supported:** Arch Linux, Manjaro, EndeavourOS, Garuda, and any Arch-based distro (x86_64 and aarch64).
 
-**One-liner:**
+**One-liner (x86_64):**
 ```bash
 wget https://github.com/9M2PJU/DroidStar-Linux/releases/latest/download/DroidStar-9M2PJU-x86_64.pkg.tar.zst -O /tmp/droidstar.pkg.tar.zst && sudo pacman -U /tmp/droidstar.pkg.tar.zst
+```
+
+**One-liner (aarch64 — Raspberry Pi 4/5, ARM SBCs):**
+```bash
+wget https://github.com/9M2PJU/DroidStar-Linux/releases/latest/download/DroidStar-9M2PJU-aarch64.pkg.tar.zst -O /tmp/droidstar.pkg.tar.zst && sudo pacman -U /tmp/droidstar.pkg.tar.zst
 ```
 
 **Manual steps:**
@@ -527,8 +532,7 @@ This repository includes a GitHub Actions workflow (`.github/workflows/build.yml
 
 | Job | Container/Runner | Output | Architectures |
 |-----|-----------------|--------|---------------|
-| **deb/rpm/AppImage/tarball** | `ubuntu:25.04` Docker (Qt 6.8.3) | `.deb`, `.rpm`, `.AppImage`, `.tar.gz` | amd64, arm64 |
-| **Arch Linux pkg** | `archlinux:latest` Docker | `.pkg.tar.zst` | x86_64 |
+| **deb/rpm/pkg/AppImage/tarball** | `ubuntu:25.04` Docker (Qt 6.8.3) | `.deb`, `.rpm`, `.pkg.tar.zst`, `.AppImage`, `.tar.gz` | amd64, arm64 |
 | **Flatpak** | GitHub runner + `flatpak-builder` + KDE SDK 6.8 | `.flatpak` | x86_64 |
 | **Snap** | GitHub runner + LXD + `snapcraft` + KDE Qt6 SDK | `.snap` | x86_64 |
 
