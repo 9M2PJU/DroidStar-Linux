@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" href="logo.png" />
+<link rel="apple-touch-icon" href="logo.png" />
+<title>DroidStar 9M2PJU for Linux</title>
+<meta name="description" content="DroidStar 9M2PJU - Linux digital voice client for DMR, M17, YSF, P25, NXDN. Download .deb, .rpm, AppImage, Flatpak, Snap, and Arch packages.">
+<style>
+  :root {
+    --bg: #041326;
+    --bg2: #0a1f3a;
+    --card: #0e2740;
+    --accent: #41cad2;
+    --accent2: #1a4f57;
+    --text: #e8f1f5;
+    --muted: #8aa3b5;
+    --border: #1a3a5c;
+    --success: #2ecc71;
+    --warn: #f39c12;
+    --bmc: #ffdd00;
+    --wise: #9FE870;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: linear-gradient(160deg, var(--bg) 0%, var(--bg2) 60%, var(--accent2) 100%);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    line-height: 1.6;
+  }
+  .container { max-width: 880px; margin: 0 auto; padding: 0 20px; width: 100%; }
+
+  /* Hero */
+  header {
+    text-align: center;
+    padding: 60px 20px 30px;
+  }
+  .logo {
+    width: 120px; height: 120px;
+    border-radius: 24px;
+    margin: 0 auto 20px;
+    background: linear-gradient(135deg, rgba(65,202,210,0.15) 0%, rgba(26,79,87,0.15) 100%);
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 10px 40px rgba(65,202,210,0.25);
+    border: 1px solid rgba(65,202,210,0.3);
+    overflow: hidden;
+  }
+  .logo img {
+    width: 100%; height: 100%;
+    object-fit: contain;
+    border-radius: 24px;
+  }
+  h1 { font-size: 2.4rem; font-weight: 800; letter-spacing: -0.5px; }
+  h1 .accent { color: var(--accent); }
+  .app-subtitle { margin-top: 4px; font-size: 1.6rem; font-weight: 700; }
+  .tagline { color: var(--muted); margin-top: 10px; font-size: 1.1rem; }
+
+  /* Download card */
+  .download-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 30px;
+    margin: 30px auto;
+    max-width: 620px;
+    text-align: center;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+  }
+  .version-badge {
+    display: inline-block;
+    background: rgba(65,202,210,0.15);
+    color: var(--accent);
+    padding: 4px 14px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 16px;
+    border: 1px solid rgba(65,202,210,0.3);
+  }
+  .download-card h2 { font-size: 1.3rem; margin-bottom: 8px; }
+  .download-card .meta { color: var(--muted); font-size: 0.9rem; margin-bottom: 22px; }
+
+  /* Package grid */
+  .pkg-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .pkg-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    background: rgba(65,202,210,0.08);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 10px;
+    text-decoration: none;
+    color: var(--text);
+    font-weight: 600;
+    font-size: 0.88rem;
+    transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+  }
+  .pkg-btn:hover {
+    transform: translateY(-3px);
+    border-color: var(--accent);
+    background: rgba(65,202,210,0.15);
+  }
+  .pkg-btn .pkg-icon { font-size: 1.8rem; }
+  .pkg-btn .pkg-size { font-size: 0.75rem; color: var(--muted); font-weight: 400; }
+  .pkg-btn.disabled { opacity: 0.4; pointer-events: none; }
+
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+    background: linear-gradient(135deg, var(--accent) 0%, #2a9aa3 100%);
+    color: #041326;
+    text-decoration: none;
+    padding: 14px 32px;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 1.05rem;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    box-shadow: 0 6px 20px rgba(65,202,210,0.3);
+  }
+  .btn:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(65,202,210,0.45); }
+  .btn:active { transform: translateY(0); }
+  .btn.secondary {
+    background: transparent;
+    color: var(--text);
+    border: 1px solid var(--border);
+    box-shadow: none;
+    margin-top: 12px;
+    font-size: 0.9rem;
+    padding: 10px 22px;
+  }
+  .btn.secondary:hover { border-color: var(--accent); color: var(--accent); }
+  .file-info { color: var(--muted); font-size: 0.82rem; margin-top: 14px; }
+
+  /* Loading / error states */
+  .state { padding: 20px; color: var(--muted); }
+  .state.error { color: var(--warn); }
+
+  /* Arch tabs */
+  .arch-tabs {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .arch-tab {
+    padding: 8px 20px;
+    border-radius: 10px;
+    background: rgba(14,39,64,0.6);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .arch-tab:hover { border-color: var(--accent); color: var(--text); }
+  .arch-tab.active {
+    background: rgba(65,202,210,0.15);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .arch-content { display: none; }
+  .arch-content.active { display: block; }
+
+  /* Features */
+  .features {
+    margin: 40px auto;
+    max-width: 880px;
+  }
+  .features h3 {
+    text-align: center;
+    font-size: 1.5rem;
+    margin-bottom: 24px;
+    color: var(--text);
+  }
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
+  }
+  .feature {
+    background: rgba(14,39,64,0.6);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px;
+  }
+  .feature .icon { font-size: 1.6rem; margin-bottom: 8px; }
+  .feature h4 { font-size: 1.05rem; margin-bottom: 6px; color: var(--accent); }
+  .feature p { color: var(--muted); font-size: 0.9rem; }
+
+  /* Info cards */
+  .info-section {
+    margin: 40px auto;
+    max-width: 880px;
+  }
+  .info-card {
+    background: rgba(14,39,64,0.5);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px;
+    margin-bottom: 20px;
+  }
+  .info-card h3 {
+    font-size: 1.3rem;
+    margin-bottom: 16px;
+    color: var(--text);
+  }
+  .info-card h3 .icon { color: var(--accent); margin-right: 8px; }
+  .info-card p { color: var(--muted); font-size: 0.92rem; margin-bottom: 12px; }
+  .info-card ul { padding-left: 22px; color: var(--muted); }
+  .info-card ul li { margin-bottom: 8px; font-size: 0.92rem; }
+  .info-card ul li strong { color: var(--text); }
+  .info-card .tag-row {
+    display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px;
+  }
+  .tag {
+    display: inline-block;
+    background: rgba(65,202,210,0.12);
+    color: var(--accent);
+    padding: 4px 12px;
+    border-radius: 16px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    border: 1px solid rgba(65,202,210,0.25);
+  }
+
+  /* Package format table */
+  .pkg-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 16px;
+    font-size: 0.88rem;
+  }
+  .pkg-table th, .pkg-table td {
+    padding: 10px 14px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  .pkg-table th {
+    color: var(--accent);
+    font-weight: 700;
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .pkg-table td { color: var(--muted); }
+  .pkg-table td strong { color: var(--text); }
+  .pkg-table tr:hover td { background: rgba(65,202,210,0.05); }
+
+  /* Donation */
+  .donate-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 30px;
+    margin: 30px auto;
+    max-width: 680px;
+    text-align: center;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+  }
+  .donate-card h3 { font-size: 1.3rem; margin-bottom: 8px; }
+  .donate-card .donate-intro { color: var(--muted); font-size: 0.92rem; margin-bottom: 22px; }
+  .donate-buttons {
+    display: flex; gap: 14px; justify-content: center; flex-wrap: wrap;
+  }
+  .donate-btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 12px 28px;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 1rem;
+    text-decoration: none;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .donate-btn:hover { transform: translateY(-2px); }
+  .donate-btn.bmc {
+    background: var(--bmc);
+    color: #000;
+    box-shadow: 0 4px 16px rgba(255,221,0,0.25);
+  }
+  .donate-btn.bmc:hover { box-shadow: 0 8px 24px rgba(255,221,0,0.4); }
+  .donate-btn.wise {
+    background: var(--wise);
+    color: #163300;
+    box-shadow: 0 4px 16px rgba(159,232,112,0.25);
+  }
+  .donate-btn.wise:hover { box-shadow: 0 8px 24px rgba(159,232,112,0.4); }
+
+  /* Donation popup modal */
+  .donate-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(4,19,38,0.85);
+    backdrop-filter: blur(4px);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .donate-overlay.active { display: flex; }
+  .donate-modal {
+    background: linear-gradient(160deg, var(--card) 0%, var(--bg2) 100%);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 36px 28px 28px;
+    max-width: 420px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.5);
+    animation: modalIn 0.3s ease;
+  }
+  @keyframes modalIn {
+    from { opacity: 0; transform: translateY(20px) scale(0.95); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  .donate-modal .modal-heart {
+    font-size: 2.5rem;
+    margin-bottom: 8px;
+  }
+  .donate-modal h3 {
+    font-size: 1.4rem;
+    margin-bottom: 10px;
+    color: var(--text);
+  }
+  .donate-modal p {
+    color: var(--muted);
+    font-size: 0.95rem;
+    line-height: 1.5;
+    margin-bottom: 22px;
+  }
+  .donate-modal .donate-buttons {
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .donate-modal .donate-btn {
+    width: 100%;
+    justify-content: center;
+  }
+  .donate-modal .modal-dismiss {
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-size: 0.9rem;
+    cursor: not-allowed;
+    opacity: 0.4;
+    padding: 8px 16px;
+    border-radius: 8px;
+    transition: color 0.2s, opacity 0.3s;
+  }
+  .donate-modal .modal-dismiss.enabled {
+    cursor: pointer;
+    opacity: 1;
+  }
+  .donate-modal .modal-dismiss.enabled:hover { color: var(--text); }
+
+  /* QR code in donation popup */
+  .donate-qr {
+    margin: 0 auto 20px;
+    text-align: center;
+  }
+  .donate-qr img {
+    width: 180px;
+    height: 180px;
+    object-fit: contain;
+    border-radius: 12px;
+    background: #fff;
+    padding: 8px;
+    border: 1px solid var(--border);
+  }
+  .donate-qr .qr-label {
+    display: block;
+    color: var(--muted);
+    font-size: 0.85rem;
+    margin-top: 8px;
+  }
+
+  /* Install steps */
+  .install {
+    margin: 40px auto;
+    max-width: 680px;
+    background: rgba(14,39,64,0.5);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px;
+  }
+  .install h3 { font-size: 1.3rem; margin-bottom: 18px; }
+  .install h4 { font-size: 1.05rem; margin: 18px 0 8px; color: var(--accent); }
+  .install p { color: var(--muted); font-size: 0.9rem; margin-bottom: 8px; }
+  .install code {
+    display: block;
+    background: rgba(4,19,38,0.7);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin: 8px 0;
+    font-family: "SF Mono", "Fira Code", "Cascadia Code", Consolas, monospace;
+    font-size: 0.85rem;
+    color: var(--accent);
+    overflow-x: auto;
+  }
+
+  /* Footer */
+  footer {
+    text-align: center;
+    padding: 30px 20px 40px;
+    color: var(--muted);
+    font-size: 0.85rem;
+    margin-top: auto;
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+
+  /* Release notes */
+  .release-notes {
+    margin: 20px auto 0;
+    max-width: 560px;
+    text-align: left;
+    background: rgba(4,19,38,0.5);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px;
+    font-size: 0.88rem;
+    color: var(--muted);
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    max-height: 240px;
+    overflow-y: auto;
+  }
+  .release-notes h4 { color: var(--text); margin-bottom: 8px; font-size: 0.95rem; }
+
+  @media (max-width: 600px) {
+    h1 { font-size: 1.8rem; }
+    .logo { width: 90px; height: 90px; }
+    .download-card { padding: 22px 18px; }
+    .donate-buttons { flex-direction: column; align-items: stretch; }
+    .pkg-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="container">
+    <div class="logo"><img src="logo.png" alt="DroidStar 9M2PJU logo" /></div>
+    <h1>DroidStar</h1>
+    <h2 class="app-subtitle"><span class="accent">9M2PJU for Linux</span></h2>
+    <p class="tagline">Linux digital voice client for DMR, M17, YSF, P25 &amp; NXDN</p>
+  </div>
+</header>
+
+<section class="container">
+  <div class="download-card" id="download-card">
+    <div id="loading" class="state">Checking for latest release&hellip;</div>
+    <div id="error" class="state error" style="display:none;"></div>
+    <div id="content" style="display:none;">
+      <span class="version-badge" id="version-badge">v&mdash;</span>
+      <h2>Latest Build</h2>
+      <p class="meta" id="meta">&nbsp;</p>
+
+      <div class="arch-tabs">
+        <div class="arch-tab active" data-arch="amd64">x86_64 (amd64)</div>
+        <div class="arch-tab" data-arch="arm64">ARM64 (aarch64)</div>
+      </div>
+
+      <div class="arch-content active" data-arch="amd64">
+        <div class="pkg-grid" id="pkg-grid-amd64"></div>
+      </div>
+      <div class="arch-content" data-arch="arm64">
+        <div class="pkg-grid" id="pkg-grid-arm64"></div>
+      </div>
+
+      <a class="btn secondary" id="all-assets-btn" href="#" target="_blank" rel="noopener">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        View all assets on GitHub
+      </a>
+
+      <div class="release-notes" id="release-notes" style="display:none;">
+        <h4>Release Notes</h4>
+        <div id="notes-body"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="info-section container">
+  <div class="info-card">
+    <h3><span class="icon">&#x1f4f1;</span>System Requirements</h3>
+    <p>DroidStar 9M2PJU runs on modern Linux distributions. No root access required for AppImage or Flatpak.</p>
+    <div class="tag-row">
+      <span class="tag">Linux x86_64 / ARM64</span>
+      <span class="tag">Qt 6.5+</span>
+      <span class="tag">No root needed (AppImage)</span>
+      <span class="tag">7 package formats</span>
+    </div>
+  </div>
+
+  <div class="info-card">
+    <h3><span class="icon">&#x1f4e6;</span>Package Formats</h3>
+    <p>Choose the format that matches your distribution. All packages contain the same application.</p>
+    <table class="pkg-table">
+      <thead>
+        <tr>
+          <th>Format</th>
+          <th>Best for</th>
+          <th>Install method</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>.deb</strong></td>
+          <td>Debian, Ubuntu, Mint, Pop!_OS</td>
+          <td><code style="display:inline; padding:2px 6px;">sudo dpkg -i</code></td>
+        </tr>
+        <tr>
+          <td><strong>.rpm</strong></td>
+          <td>Fedora, RHEL, openSUSE</td>
+          <td><code style="display:inline; padding:2px 6px;">sudo rpm -i</code></td>
+        </tr>
+        <tr>
+          <td><strong>.pkg.tar.zst</strong></td>
+          <td>Arch Linux, CachyOS, EndeavourOS</td>
+          <td><code style="display:inline; padding:2px 6px;">sudo pacman -U</code></td>
+        </tr>
+        <tr>
+          <td><strong>.AppImage</strong></td>
+          <td>Any distro (portable)</td>
+          <td>Make executable &amp; run</td>
+        </tr>
+        <tr>
+          <td><strong>.flatpak</strong></td>
+          <td>Any distro (sandboxed)</td>
+          <td><code style="display:inline; padding:2px 6px;">flatpak install</code></td>
+        </tr>
+        <tr>
+          <td><strong>.snap</strong></td>
+          <td>Ubuntu &amp; snap-enabled</td>
+          <td><code style="display:inline; padding:2px 6px;">sudo snap install</code></td>
+        </tr>
+        <tr>
+          <td><strong>.tar.gz</strong></td>
+          <td>Manual / custom install</td>
+          <td>Extract &amp; run</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="info-card">
+    <h3><span class="icon">&#x1f527;</span>What's New</h3>
+    <p>This build includes the redesigned UI and crash guards from the experimental branch:</p>
+    <ul>
+      <li><strong>Redesigned UI</strong> &mdash; bottom navigation bar with custom icons, card-based layout, dark theme with cyan accent (#41cad2).</li>
+      <li><strong>Crash-proof error handling</strong> &mdash; comprehensive null pointer guards across all modes. The app never exits on connection errors &mdash; it shows a user-friendly popup instead.</li>
+      <li><strong>DMR connection retry &amp; timeout</strong> &mdash; 3 retry attempts with 10s timeout. Clear error popups for server rejection (MSTNAK), server shutdown (MSTCL), DNS failures, and unreachable hosts.</li>
+      <li><strong>In-app update checker</strong> &mdash; checks GitHub releases on startup and notifies you when a new version is available.</li>
+      <li><strong>Built-in vocoders</strong> &mdash; AMBE, Codec 2, and IMBE vocoders compiled directly into the binary. No external vocoder plugin download needed.</li>
+      <li><strong>USB vocoder support</strong> &mdash; connect an external AMBE vocoder or MMDVM modem over USB serial.</li>
+      <li><strong>7 package formats</strong> &mdash; .deb, .rpm, .pkg.tar.zst, .AppImage, .flatpak, .snap, and .tar.gz for x86_64 and ARM64.</li>
+    </ul>
+  </div>
+
+  <div class="info-card">
+    <h3><span class="icon">&#x1f4dd;</span>Credits &amp; License</h3>
+    <p>Original DroidStar by <strong>Doug McLain AD8DP</strong>. Modified and distributed by <strong>9M2PJU</strong>.</p>
+    <ul>
+      <li>Upstream: <strong>github.com/nostar/droidstar</strong></li>
+      <li>License: <strong>GPL v3.0</strong></li>
+      <li>Built with <strong>Qt 6</strong> + CMake</li>
+    </ul>
+  </div>
+</section>
+
+<section class="features container">
+  <h3>Features</h3>
+  <div class="features-grid">
+    <div class="feature">
+      <div class="icon">&#x1f4e1;</div>
+      <h4>Multiple Modes</h4>
+      <p>DMR, M17, YSF, P25, NXDN plus DCS / XRF / REF / FCS / IAX reflectors.</p>
+    </div>
+    <div class="feature">
+      <div class="icon">&#x1f3a4;</div>
+      <h4>Built-in Vocoders</h4>
+      <p>AMBE, Codec 2 &amp; IMBE compiled in &mdash; no external plugin download required.</p>
+    </div>
+    <div class="feature">
+      <div class="icon">&#x1f50b;</div>
+      <h4>USB Vocoder Support</h4>
+      <p>Connect an external AMBE vocoder or MMDVM modem over USB serial.</p>
+    </div>
+    <div class="feature">
+      <div class="icon">&#x1f465;</div>
+      <h4>Operator Info</h4>
+      <p>Auto-fetches handle &amp; country from DMR ID via the Radioid API.</p>
+    </div>
+    <div class="feature">
+      <div class="icon">&#x1f3a8;</div>
+      <h4>Modern Dark Theme</h4>
+      <p>Deep navy + cyan accent. Card-based layout with bottom navigation.</p>
+    </div>
+    <div class="feature">
+      <div class="icon">&#x1f4ac;</div>
+      <h4>SMS &amp; DTMF</h4>
+      <p>M17 SMS messaging and IAX DTMF tone sending built in.</p>
+    </div>
+  </div>
+</section>
+
+<section class="container">
+  <div class="install">
+    <h3>How to Install</h3>
+
+    <h4>AppImage (any distro)</h4>
+    <p>Download the .AppImage file, make it executable, and run:</p>
+    <code>chmod +x DroidStar-9M2PJU-*.AppImage
+./DroidStar-9M2PJU-*.AppImage</code>
+
+    <h4>Debian / Ubuntu (.deb)</h4>
+    <code>sudo dpkg -i DroidStar-9M2PJU-*.deb
+sudo apt-get install -f</code>
+
+    <h4>Fedora / RHEL (.rpm)</h4>
+    <code>sudo rpm -i DroidStar-9M2PJU-*.rpm</code>
+
+    <h4>Arch Linux (.pkg.tar.zst)</h4>
+    <code>sudo pacman -U DroidStar-9M2PJU-*.pkg.tar.zst</code>
+
+    <h4>Flatpak (any distro)</h4>
+    <code>flatpak install DroidStar-9M2PJU-*.flatpak
+flatpak run org.dudetronics.droidstar</code>
+
+    <h4>Snap (Ubuntu &amp; snap-enabled)</h4>
+    <code>sudo snap install DroidStar-9M2PJU-*.snap --dangerous</code>
+
+    <p style="margin-top:16px; color:var(--accent); font-size:0.88rem;">
+      <strong>First run?</strong> Configure your callsign, DMR ID, and host in Settings. Vocoders are built in &mdash; no extra downloads needed.
+    </p>
+  </div>
+</section>
+
+<section class="container">
+  <div class="donate-card">
+    <h3>&#x1f495; Support the Project</h3>
+    <p class="donate-intro">
+      DroidStar 9M2PJU is free and open source. If you find it useful,
+      consider buying us a coffee. Every contribution helps keep the builds coming.
+    </p>
+    <div class="donate-buttons">
+      <a class="donate-btn bmc" href="https://www.buymeacoffee.com/9m2pju" target="_blank" rel="noopener">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M18 6h-2V4a2 2 0 0 0-2-2H10a2 2 0 0 0-2 2v2H6a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2zm-8-2h4v2h-4V4z"/></svg>
+        Buy Me a Coffee
+      </a>
+      <a class="donate-btn wise" href="https://wise.com/pay/me/faizulz13" target="_blank" rel="noopener">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+        Donate with Wise
+      </a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <p>Built with Qt 6 &middot; GPL v3.0</p>
+    <p style="margin-top:12px; opacity:0.7;">Made by <a href="https://hamradio.my" style="color:#41cad2; text-decoration:none;">9M2PJU</a></p>
+  </div>
+</footer>
+
+<script>
+(function () {
+  var REPO = '9M2PJU/DroidStar-Linux';
+  var API = 'https://api.github.com/repos/' + REPO + '/releases/latest';
+  var loading = document.getElementById('loading');
+  var errorEl = document.getElementById('error');
+  var content = document.getElementById('content');
+
+  function fail(msg) {
+    loading.style.display = 'none';
+    errorEl.textContent = msg;
+    errorEl.style.display = 'block';
+  }
+
+  function fmtSize(bytes) {
+    if (!bytes) return '';
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  }
+
+  function fmtDate(iso) {
+    if (!iso) return '';
+    var d = new Date(iso);
+    return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+  }
+
+  // Package format metadata
+  var PKG_FORMATS = [
+    { ext: '.deb',        icon: '&#x1f4e4;', label: 'DEB' },
+    { ext: '.rpm',        icon: '&#x1f3d7;', label: 'RPM' },
+    { ext: '.pkg.tar.zst',icon: '&#x1f9f1;', label: 'Arch' },
+    { ext: '.AppImage',   icon: '&#x1f4c1;', label: 'AppImage' },
+    { ext: '.flatpak',    icon: '&#x1f4c2;', label: 'Flatpak' },
+    { ext: '.snap',       icon: '&#x1f4a3;', label: 'Snap' },
+    { ext: '.tar.gz',     icon: '&#x1f4e6;', label: 'Tarball' }
+  ];
+
+  function buildPkgGrid(assets, arch) {
+    var gridId = 'pkg-grid-' + arch;
+    var grid = document.getElementById(gridId);
+    if (!grid) return;
+    grid.innerHTML = '';
+    var found = false;
+
+    PKG_FORMATS.forEach(function(fmt) {
+      var asset = null;
+      if (assets && assets.length) {
+        for (var i = 0; i < assets.length; i++) {
+          var name = assets[i].name.toLowerCase();
+          if (name.endsWith(fmt.ext.toLowerCase()) &&
+              (name.includes(arch) || name.includes(arch.replace('arm64','aarch64')))) {
+            asset = assets[i];
+            break;
+          }
+        }
+      }
+      var btn = document.createElement('a');
+      btn.className = 'pkg-btn' + (asset ? '' : ' disabled');
+      if (asset) {
+        btn.href = asset.browser_download_url;
+        btn.target = '_blank';
+        btn.rel = 'noopener';
+        found = true;
+      }
+      btn.innerHTML =
+        '<span class="pkg-icon">' + fmt.icon + '</span>' +
+        '<span>' + fmt.label + '</span>' +
+        '<span class="pkg-size">' + (asset ? fmtSize(asset.size) : '&mdash;') + '</span>';
+      grid.appendChild(btn);
+    });
+
+    if (!found) {
+      grid.innerHTML = '<p style="color:var(--muted); grid-column: 1/-1; text-align:center;">No ' + arch + ' packages in this release.</p>';
+    }
+  }
+
+  fetch(API, { headers: { 'Accept': 'application/vnd.github+json' } })
+    .then(function (r) {
+      if (r.status === 404) throw new Error('No releases yet. The first release will appear here once a build is published.');
+      if (!r.ok) throw new Error('GitHub API error: ' + r.status);
+      return r.json();
+    })
+    .then(function (rel) {
+      loading.style.display = 'none';
+      content.style.display = 'block';
+
+      document.getElementById('version-badge').textContent = rel.tag_name || rel.name || 'latest';
+      document.getElementById('meta').textContent = 'Published ' + fmtDate(rel.published_at || rel.created_at);
+
+      buildPkgGrid(rel.assets, 'amd64');
+      buildPkgGrid(rel.assets, 'arm64');
+
+      var allAssetsBtn = document.getElementById('all-assets-btn');
+      allAssetsBtn.href = rel.html_url || ('https://github.com/' + REPO + '/releases');
+
+      // Release notes
+      var body = (rel.body || '').trim();
+      if (body) {
+        document.getElementById('release-notes').style.display = 'block';
+        var clean = body.replace(/^#+\s*/gm, '').replace(/```[\s\S]*?```/g, '');
+        document.getElementById('notes-body').textContent = clean;
+      }
+    })
+    .catch(function (err) {
+      fail(err.message || 'Failed to load release info.');
+    });
+})();
+</script>
+
+<script>
+// Architecture tab switcher
+(function () {
+  var tabs = document.querySelectorAll('.arch-tab');
+  var contents = document.querySelectorAll('.arch-content');
+  tabs.forEach(function (tab) {
+    tab.addEventListener('click', function () {
+      var target = tab.getAttribute('data-arch');
+      tabs.forEach(function (t) { t.classList.remove('active'); });
+      contents.forEach(function (c) { c.classList.remove('active'); });
+      tab.classList.add('active');
+      var el = document.querySelector('.arch-content[data-arch="' + target + '"]');
+      if (el) el.classList.add('active');
+    });
+  });
+})();
+</script>
+
+<!-- Donation popup modal -->
+<div class="donate-overlay" id="donateOverlay">
+  <div class="donate-modal">
+    <div class="modal-heart">&#x1f495;</div>
+    <h3>Enjoying DroidStar 9M2PJU?</h3>
+    <p>
+      This app is free and open source, built and maintained by a ham for the ham radio community.
+      If you'd like to leave a tip or support development, it would be very much appreciated.
+    </p>
+    <div class="donate-buttons">
+      <a class="donate-btn bmc" href="https://www.buymeacoffee.com/9m2pju" target="_blank" rel="noopener">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M18 6h-2V4a2 2 0 0 0-2-2H10a2 2 0 0 0-2 2v2H6a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2zm-8-2h4v2h-4V4z"/></svg>
+        Buy Me a Coffee
+      </a>
+      <a class="donate-btn wise" href="https://wise.com/pay/me/faizulz13" target="_blank" rel="noopener">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+        Donate with Wise
+      </a>
+    </div>
+    <div class="donate-qr">
+      <img src="donate-qr.jpg" alt="Scan to donate via Malaysian e-wallet" />
+      <span class="qr-label">Malaysia e-wallet? Scan this QR to donate</span>
+    </div>
+    <button class="modal-dismiss" id="donateDismiss">Please wait 10s&hellip;</button>
+  </div>
+</div>
+
+<script>
+// Show donation popup on every visit
+(function () {
+  var overlay = document.getElementById('donateOverlay');
+  var dismiss = document.getElementById('donateDismiss');
+  var canClose = false;
+  function showPopup() { overlay.classList.add('active'); }
+  function hidePopup() { if (canClose) overlay.classList.remove('active'); }
+  // Show after a short delay so the page loads first
+  setTimeout(showPopup, 1500);
+  // Countdown: update button text every second for 10 seconds
+  var remaining = 10;
+  var countdown = setInterval(function () {
+    remaining--;
+    if (remaining > 0) {
+      dismiss.textContent = 'Please wait ' + remaining + 's\u2026';
+    } else {
+      clearInterval(countdown);
+      canClose = true;
+      dismiss.textContent = 'No thanks, maybe later';
+      dismiss.classList.add('enabled');
+    }
+  }, 1000);
+  // Allow closing after 10 seconds (safety in case countdown drifts)
+  setTimeout(function () {
+    if (!canClose) {
+      clearInterval(countdown);
+      canClose = true;
+      dismiss.textContent = 'No thanks, maybe later';
+      dismiss.classList.add('enabled');
+    }
+  }, 11500);
+  // Dismiss on button click
+  dismiss.addEventListener('click', hidePopup);
+  // Dismiss on overlay click (outside modal)
+  overlay.addEventListener('click', function (e) {
+    if (e.target === overlay) hidePopup();
+  });
+  // Dismiss on Escape key
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') hidePopup();
+  });
+})();
+</script>
+
+</body>
+</html>
