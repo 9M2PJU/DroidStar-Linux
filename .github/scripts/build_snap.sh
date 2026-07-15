@@ -58,6 +58,7 @@ parts:
       - -DCMAKE_BUILD_TYPE=Release
       - -DCMAKE_INSTALL_PREFIX=/usr
       - -DCMAKE_PREFIX_PATH=/snap/kde-qt6-core24-sdk/current/usr
+      - -DSKIP_QT_DEPLOY=ON
     build-environment:
       - CMAKE_PREFIX_PATH: /snap/kde-qt6-core24-sdk/current/usr
       - PATH: /snap/kde-qt6-core24-sdk/current/usr/bin:${PATH}
