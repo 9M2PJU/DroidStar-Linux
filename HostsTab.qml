@@ -21,46 +21,118 @@ import QtQuick.Controls
 Item {
 	id: hostsTab
 	property alias hostsTextEdit: hostsTxtEdit
-	Rectangle{
-		id: hostsList
-		x: 20
-		y: 20
-		width: parent.width - 40
-		height: parent.height - 40
-		color: "#252424"
-		Flickable{
-			anchors.fill: parent
-			contentWidth: parent.width
-			contentHeight: hostsTxtEdit.y +
-						   hostsTxtEdit.height
-			flickableDirection: Flickable.VerticalFlick
-			clip: true
+
+	Rectangle {
+		id: bg
+		anchors.fill: parent
+		color: main.tBg
+
+		// Header
+		Text {
+			id: headerText
+			anchors.top: parent.top
+			anchors.left: parent.left
+			anchors.right: parent.right
+			anchors.margins: main.sp4
+			wrapMode: Text.WordWrap
+			color: main.tText
+			font.bold: true
+			font.pixelSize: 20
+			text: qsTr("Custom Hosts")
+		}
+
+		// Instructions card
+		Rectangle {
+			id: instrCard
+			anchors.top: headerText.bottom
+			anchors.left: parent.left
+			anchors.right: parent.right
+			anchors.margins: main.sp4
+			color: main.tSurface
+			radius: main.radiusSm
+			border.color: main.tBorder
+			border.width: 1
+			implicitHeight: instrText.implicitHeight + main.sp4 * 2
+
 			Text {
-				id: hostsText
-				width: hostsText.width
+				id: instrText
+				anchors.fill: parent
+				anchors.margins: main.sp4
 				wrapMode: Text.WordWrap
-				color: "white"
+				color: main.tTextMuted
+				font.pixelSize: 13
 				text: qsTr("Custom hostfile format:\n" +
-                           "<mode> <name> <host> <port> <username (optional)> <password (optional)>\n" +
+						   "<mode> <name> <host> <port> <username (optional)> <password (optional)>\n" +
 						   "Example: REF REF123 192.168.1.1 20001\n" +
-                           "Example: DMR MyNet 192.168.1.1 62030 passw0rd\n" +
-                           "Example: IAX 12345 192.168.1.1 4569 iaxclient iaxpass\n" +
+						   "Example: DMR MyNet 192.168.1.1 62030 passw0rd\n" +
+						   "Example: IAX 12345 192.168.1.1 4569 iaxclient iaxpass\n" +
 						   "Example: IAX 12345 wt")
 			}
-			TextArea {
-				id: hostsTxtEdit
-				x: 0
-				y: hostsText.height + 5
-				width: hostsList.width
-				height: 500
-				background: Rectangle {
-					color: "#000000"
-					radius: 5
-				}
-				wrapMode: TextArea.WordWrap
-				text: qsTr("")
-				onEditingFinished: {
-					droidstar.update_custom_hosts(hostsTxtEdit.text);
+		}
+
+		// Save button
+		Button {
+			id: saveBtn
+			anchors.bottom: parent.bottom
+			anchors.left: parent.left
+			anchors.right: parent.right
+			anchors.margins: main.sp4
+			implicitHeight: 52
+
+			background: Rectangle {
+				color: saveBtn.pressed ? Qt.darker(main.tAccent, 1.2) : main.tAccent
+				radius: main.radius
+			}
+
+			contentItem: Text {
+				text: qsTr("Save")
+				color: main.tBg
+				font.bold: true
+				font.pixelSize: 16
+				horizontalAlignment: Text.AlignHCenter
+				verticalAlignment: Text.AlignVCenter
+			}
+
+			onClicked: {
+				droidstar.update_custom_hosts(hostsTxtEdit.text);
+			}
+		}
+
+		// Editor card - fills space between instructions and save button
+		Rectangle {
+			id: editorCard
+			anchors.top: instrCard.bottom
+			anchors.bottom: saveBtn.top
+			anchors.left: parent.left
+			anchors.right: parent.right
+			anchors.margins: main.sp4
+			color: main.tSurface
+			radius: main.radius
+			border.color: main.tBorder
+			border.width: 1
+			clip: true
+
+			Flickable {
+				anchors.fill: parent
+				anchors.margins: 1
+				contentWidth: parent.width
+				contentHeight: hostsTxtEdit.y + hostsTxtEdit.height
+				flickableDirection: Flickable.VerticalFlick
+				clip: true
+
+				TextArea {
+					id: hostsTxtEdit
+					x: 0
+					y: 0
+					width: editorCard.width - 2
+					height: Math.max(editorCard.height - 2, contentHeight)
+					wrapMode: TextArea.WordWrap
+					font.family: "monospace"
+					font.pixelSize: 14
+					text: qsTr("")
+					background: Rectangle {
+						color: "transparent"
+					}
 				}
 			}
 		}

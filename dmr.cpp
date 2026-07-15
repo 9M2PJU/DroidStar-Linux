@@ -102,8 +102,10 @@ void DMR::process_udp()
 
 	// Handle MSTNAK - Master NAK (peer not recognized/rejected)
 	if((::memcmp(buf.data(), "MSTNAK", 6U) == 0)){
-		qDebug() << "Received MSTNAK from master - reconnecting...";
-		// Mark disconnected, stop timers and clean up socket
+		qDebug() << "Received MSTNAK from master - connection rejected";
+		if(m_connect_timer && m_connect_timer->isActive()){
+			m_connect_timer->stop();
+		}
 		m_modeinfo.status = DISCONNECTED;
 		if(m_ping_timer && m_ping_timer->isActive()){
 			m_ping_timer->stop();
@@ -113,17 +115,15 @@ void DMR::process_udp()
 			m_udp = nullptr;
 		}
 		emit update(m_modeinfo);
-	// Simulate pressing the main connect button so the UI shows disconnected,
-	// then request a reconnect after a 10s timeout using the same hook.
-	// Reconnect must be queued before disconnect destroys this object
-	emit request_reconnect(10000);
-	emit request_connect_toggle();
+		emit connect_failed("DMR server rejected the connection (MSTNAK).\n\nThis usually means:\n- Your DMR ID is not registered on this server\n- Your Brandmeister password is incorrect\n- Your hotspot/ESSID is not approved\n\nCheck your Settings and try again.");
 		return;
 	}
 	// Handle MSTCL - Master close (server shutting down)
 	if((::memcmp(buf.data(), "MSTCL", 5U) == 0)){
-		qDebug() << "Received MSTCL from master - reconnecting...";
-		// Treat master close as a disconnect and attempt reconnect
+		qDebug() << "Received MSTCL from master - server closing";
+		if(m_connect_timer && m_connect_timer->isActive()){
+			m_connect_timer->stop();
+		}
 		m_modeinfo.status = DISCONNECTED;
 		if(m_ping_timer && m_ping_timer->isActive()){
 			m_ping_timer->stop();
@@ -133,11 +133,7 @@ void DMR::process_udp()
 			m_udp = nullptr;
 		}
 		emit update(m_modeinfo);
-	// Simulate pressing the main connect button to show disconnected state,
-	// then request a reconnect after 10 seconds via the main app hook.
-	// Reconnect must be queued before disconnect destroys this object
-	emit request_reconnect(10000);
-	emit request_connect_toggle();
+		emit connect_failed("DMR server is closing/shutting down (MSTCL).\n\nPlease try again later or use a different host.");
 		return;
 	}
 	if((m_modeinfo.status != CONNECTED_RW) && (::memcmp(buf.data(), "RPTACK", 6U) == 0)){
@@ -345,6 +341,9 @@ void DMR::process_udp()
 void DMR::setup_connection()
 {
 	m_modeinfo.status = CONNECTED_RW;
+	if(m_connect_timer && m_connect_timer->isActive()){
+		m_connect_timer->stop();
+	}
 	//m_mbeenc->set_gain_adjust(2.5);
 	m_modeinfo.sw_vocoder_loaded = load_vocoder_plugin();
 	m_txtimer = new QTimer();
@@ -384,39 +383,92 @@ void DMR::mmdvm_direct_connect()
 void DMR::hostname_lookup(QHostInfo i)
 {
 	qDebug() << "DMR::hostname_lookup() called; host=" << m_modeinfo.host << "addresses=" << i.addresses().size();
-	if (!i.addresses().isEmpty()) {
-		// We're initiating a new connection attempt — mark as CONNECTING so the RPTACK
-		// handler will progress the handshake state machine.
-		m_modeinfo.status = CONNECTING;
-		qDebug() << "DMR: starting connection, status set to CONNECTING";
-		QByteArray out;
-		out.append('R');
-		out.append('P');
-		out.append('T');
-		out.append('L');
-		out.append((m_essid >> 24) & 0xff);
-		out.append((m_essid >> 16) & 0xff);
-		out.append((m_essid >> 8) & 0xff);
-		out.append((m_essid >> 0) & 0xff);
-		m_address = i.addresses().first();
-		m_udp = new QUdpSocket(this);
-		connect(m_udp, SIGNAL(readyRead()), this, SLOT(process_udp()));
-		m_udp->writeDatagram(out, m_address, m_modeinfo.port);
-
-        if(m_debug){
-            QDebug debug = qDebug();
-            debug.noquote();
-            QString s = "CONN:";
-            for(int i = 0; i < out.size(); ++i){
-                s += " " + QString("%1").arg((uint8_t)out.data()[i], 2, 16, QChar('0'));
-            }
-            debug << s;
-        }
+	if (i.addresses().isEmpty()) {
+		qDebug() << "DMR: hostname resolution failed for" << m_modeinfo.host;
+		m_modeinfo.status = DISCONNECTED;
+		emit update(m_modeinfo);
+		emit connect_failed("Cannot resolve hostname: " + m_modeinfo.host + "\n\nPlease check your network connection and try again.");
+		return;
 	}
+	// We're initiating a new connection attempt — mark as CONNECTING so the RPTACK
+	// handler will progress the handshake state machine.
+	m_modeinfo.status = CONNECTING;
+	m_connect_retries = 0;
+	qDebug() << "DMR: starting connection, status set to CONNECTING";
+	QByteArray out;
+	out.append('R');
+	out.append('P');
+	out.append('T');
+	out.append('L');
+	out.append((m_essid >> 24) & 0xff);
+	out.append((m_essid >> 16) & 0xff);
+	out.append((m_essid >> 8) & 0xff);
+	out.append((m_essid >> 0) & 0xff);
+	m_address = i.addresses().first();
+	m_udp = new QUdpSocket(this);
+	connect(m_udp, SIGNAL(readyRead()), this, SLOT(process_udp()));
+	m_udp->writeDatagram(out, m_address, m_modeinfo.port);
+
+	if(!m_connect_timer){
+		m_connect_timer = new QTimer(this);
+		m_connect_timer->setSingleShot(true);
+		connect(m_connect_timer, SIGNAL(timeout()), this, SLOT(connect_timeout()));
+	}
+	m_connect_timer->start(CONNECT_TIMEOUT_MS);
+
+	if(m_debug){
+		QDebug debug = qDebug();
+		debug.noquote();
+		QString s = "CONN:";
+		for(int j = 0; j < out.size(); ++j){
+			s += " " + QString("%1").arg((uint8_t)out.data()[j], 2, 16, QChar('0'));
+		}
+		debug << s;
+	}
+}
+
+void DMR::connect_timeout()
+{
+	qDebug() << "DMR::connect_timeout() — no response from server, retries =" << m_connect_retries;
+	++m_connect_retries;
+
+	if(m_connect_retries < MAX_CONNECT_RETRIES){
+		qDebug() << "DMR: retrying connection attempt" << m_connect_retries << "/" << MAX_CONNECT_RETRIES;
+		if(m_udp){
+			QByteArray out;
+			out.append('R');
+			out.append('P');
+			out.append('T');
+			out.append('L');
+			out.append((m_essid >> 24) & 0xff);
+			out.append((m_essid >> 16) & 0xff);
+			out.append((m_essid >> 8) & 0xff);
+			out.append((m_essid >> 0) & 0xff);
+			m_udp->writeDatagram(out, m_address, m_modeinfo.port);
+			m_connect_timer->start(CONNECT_TIMEOUT_MS);
+		}
+		return;
+	}
+
+	qDebug() << "DMR: max retries reached, giving up";
+	m_modeinfo.status = DISCONNECTED;
+	if(m_ping_timer && m_ping_timer->isActive()){
+		m_ping_timer->stop();
+	}
+	if(m_connect_timer){
+		m_connect_timer->stop();
+	}
+	if(m_udp){
+		m_udp->deleteLater();
+		m_udp = nullptr;
+	}
+	emit update(m_modeinfo);
+	emit connect_failed("Cannot connect to DMR server " + m_modeinfo.host + ":" + QString::number(m_modeinfo.port) + "\n\nThe server may be down or unreachable. Please try another host or try again later.");
 }
 
 void DMR::send_ping()
 {
+	if(!m_udp) return;
 	QByteArray out;
 	char tag[] = { 'R','P','T','P','I','N','G' };
 	out.append(tag, 7);
@@ -442,6 +494,7 @@ void DMR::send_disconnect()
     if(m_mdirect){
                 return;
         }
+    if(!m_udp) return;
 
 	QByteArray out;
 	out.append('R');
@@ -558,6 +611,7 @@ void DMR::process_modem_data(QByteArray d)
 
 void DMR::transmit()
 {
+	if(!m_udp) return;
 	uint8_t ambe[72];
 	int16_t pcm[160];
 

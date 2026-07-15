@@ -305,10 +305,17 @@ void YSF::hostname_lookup(QHostInfo i)
             debug << s;
         }
 	}
+	else {
+		qDebug() << "YSF: hostname resolution failed for" << m_modeinfo.host;
+		m_modeinfo.status = DISCONNECTED;
+		emit update(m_modeinfo);
+		emit connect_failed("Cannot resolve hostname: " + m_modeinfo.host + "\n\nPlease check your network connection and try again.");
+	}
 }
 
 void YSF::send_ping()
 {
+	if(!m_udp) return;
 	QByteArray out;
 	if(m_refname.left(3) == "FCS"){
 		out.append('P');
@@ -343,6 +350,7 @@ void YSF::send_ping()
 
 void YSF::send_disconnect()
 {
+	if(!m_udp) return;
 	QByteArray out;
 	if(m_refname.left(3) == "FCS"){
 		out.append('C');
@@ -714,6 +722,7 @@ void YSF::process_modem_data(QByteArray d)
 
 void YSF::transmit()
 {
+	if(!m_udp) return;
 	uint8_t ambe_frame[88];
 	uint8_t ambe[7];
 	int16_t pcm[160];

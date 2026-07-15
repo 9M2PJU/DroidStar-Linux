@@ -239,10 +239,17 @@ void DCS::hostname_lookup(QHostInfo i)
             debug << s;
         }
 	}
+	else {
+		qDebug() << "DCS: hostname resolution failed for" << m_modeinfo.host;
+		m_modeinfo.status = DISCONNECTED;
+		emit update(m_modeinfo);
+		emit connect_failed("Cannot resolve hostname: " + m_modeinfo.host + "\n\nPlease check your network connection and try again.");
+	}
 }
 
 void DCS::send_ping()
 {
+	if(!m_udp) return;
 	static QByteArray out;
 	out.clear();
 	out.append(m_modeinfo.callsign.toUtf8());
@@ -267,6 +274,7 @@ void DCS::send_ping()
 
 void DCS::send_disconnect()
 {
+	if(!m_udp) return;
 	QByteArray out;
 	out.append(m_modeinfo.callsign.toUtf8());
 	out.append(8 - m_modeinfo.callsign.size(), ' ');
@@ -347,6 +355,7 @@ void DCS::start_tx()
 
 void DCS::transmit()
 {
+    if(!m_udp) return;
     uint8_t ambe[9];
 	int16_t pcm[160];
 	memset(ambe, 0, 9);

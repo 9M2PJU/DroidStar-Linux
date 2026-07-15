@@ -45,6 +45,7 @@ private slots:
 	void slot_changed(int s) {m_txslot = s + 1; }
 	void send_frame();
 	void mmdvm_direct_connect();
+	void connect_timeout();
 private:
 	uint32_t m_essid;
 	QString m_password;
@@ -73,6 +74,11 @@ private:
 	bool m_raw[128U];
 	bool m_data[72U];
 	QString m_options;
+
+	QTimer *m_connect_timer = nullptr;
+	int m_connect_retries = 0;
+	static const int MAX_CONNECT_RETRIES = 3;
+	static const int CONNECT_TIMEOUT_MS = 10000;
 
 	void byteToBitsBE(uint8_t byte, bool* bits);
 	void bitsToByteBE(const bool* bits, uint8_t& byte);

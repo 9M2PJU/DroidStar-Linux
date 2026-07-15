@@ -208,10 +208,17 @@ void NXDN::hostname_lookup(QHostInfo i)
 		m_modeinfo.gwid = m_refname.toUInt();
 		send_ping();
 	}
+	else {
+		qDebug() << "NXDN: hostname resolution failed for" << m_modeinfo.host;
+		m_modeinfo.status = DISCONNECTED;
+		emit update(m_modeinfo);
+		emit connect_failed("Cannot resolve hostname: " + m_modeinfo.host + "\n\nPlease check your network connection and try again.");
+	}
 }
 
 void NXDN::send_ping(bool disconnect)
 {
+	if(!m_udp) return;
 	QByteArray out;
 	out.append('N');
 	out.append('X');
@@ -237,6 +244,7 @@ void NXDN::send_ping(bool disconnect)
 
 void NXDN::transmit()
 {
+	if(!m_udp) return;
 	uint8_t ambe[7];
 	int16_t pcm[160];
 

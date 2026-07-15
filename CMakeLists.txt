@@ -114,6 +114,7 @@ execute_process(
 target_compile_definitions(DroidStar PRIVATE
     QT_DEPRECATED_WARNINGS
     VERSION_NUMBER="${VERSION_NUMBER}"
+    APP_VERSION="1.0.${VERSION_NUMBER}"
 )
 
 target_link_libraries(DroidStar PRIVATE

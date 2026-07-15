@@ -305,7 +305,9 @@ void DroidStar::process_connect()
             emit connect_status_changed(5);
         }
 		connect_status = Mode::DISCONNECTED;
-		m_modethread->quit();
+		if(m_modethread){
+			m_modethread->quit();
+		}
 		m_data1.clear();
 		m_data2.clear();
 		m_data3.clear();
@@ -323,6 +325,20 @@ void DroidStar::process_connect()
 #endif
 	}
 	else{
+		// Input validation before attempting connection
+		if(m_callsign.isEmpty()){
+			m_errortxt = "Callsign is empty. Set your callsign in Settings before connecting.";
+			connect_status = Mode::DISCONNECTED;
+			emit connect_status_changed(5);
+			return;
+		}
+		if((m_protocol == "DMR") && (m_dmrid == 0)){
+			m_errortxt = "DMR ID is not set. Set your DMR ID in Settings before connecting.";
+			connect_status = Mode::DISCONNECTED;
+			emit connect_status_changed(5);
+			return;
+		}
+
 		if(m_protocol == "REF"){
 			m_refname = m_saved_refhost;
 		}
@@ -410,6 +426,12 @@ void DroidStar::process_connect()
 		uint16_t nxdnid = m_nxdnids.key(m_callsign);
 
 		m_mode = Mode::create_mode(m_protocol);
+		if(!m_mode){
+			m_errortxt = "Unknown mode: " + m_protocol + ". Cannot create mode handler.";
+			connect_status = Mode::DISCONNECTED;
+			emit connect_status_changed(5);
+			return;
+		}
 		m_modethread = new QThread;
 		m_mode->moveToThread(m_modethread);
 
@@ -447,6 +469,7 @@ void DroidStar::process_connect()
 		// Allow modes to request the main app to toggle the connect button (simulate user)
 		connect(m_mode, SIGNAL(request_connect_toggle()), this, SLOT(process_connect()));
 		connect(m_mode, SIGNAL(request_reconnect(int)), this, SLOT(schedule_reconnect(int)));
+		connect(m_mode, SIGNAL(connect_failed(QString)), this, SLOT(handle_connect_failed(QString)));
         emit connect_status_changed(1);
 		emit module_changed(m_module);
 		emit mycall_changed(m_mycall);
@@ -509,6 +532,24 @@ void DroidStar::schedule_reconnect(int ms)
 {
 	qDebug() << "schedule_reconnect called, reconnecting in" << ms << "ms";
 	QTimer::singleShot(ms, this, SLOT(process_connect()));
+}
+
+void DroidStar::handle_connect_failed(QString reason)
+{
+	qDebug() << "handle_connect_failed:" << reason;
+	connect_status = Mode::DISCONNECTED;
+	if(m_modethread){
+		m_modethread->quit();
+	}
+	m_data1.clear();
+	m_data2.clear();
+	m_data3.clear();
+	m_data4.clear();
+	m_data5.clear();
+	m_data6.clear();
+	m_errortxt = reason;
+	emit connect_status_changed(5);
+	emit update_log(reason);
 }
 
 void DroidStar::process_host_change(const QString &h)

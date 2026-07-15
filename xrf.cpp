@@ -254,10 +254,17 @@ void XRF::hostname_lookup(QHostInfo i)
             debug << s;
         }
 	}
+	else {
+		qDebug() << "XRF: hostname resolution failed for" << m_modeinfo.host;
+		m_modeinfo.status = DISCONNECTED;
+		emit update(m_modeinfo);
+		emit connect_failed("Cannot resolve hostname: " + m_modeinfo.host + "\n\nPlease check your network connection and try again.");
+	}
 }
 
 void XRF::send_ping()
 {
+	if(!m_udp) return;
 	QByteArray out;
 	out.append(m_modeinfo.callsign.toUtf8());
 	out.append(8 - m_modeinfo.callsign.size(), ' ');
@@ -277,6 +284,7 @@ void XRF::send_ping()
 
 void XRF::send_disconnect()
 {
+	if(!m_udp) return;
 	QByteArray out;
 	out.append(m_modeinfo.callsign.toUtf8());
 	out.append(8 - m_modeinfo.callsign.size(), ' ');
@@ -356,6 +364,7 @@ void XRF::start_tx()
 
 void XRF::transmit()
 {
+	if(!m_udp) return;
 	uint8_t ambe[9];
 	uint8_t ambe_frame[72];
 	int16_t pcm[160];

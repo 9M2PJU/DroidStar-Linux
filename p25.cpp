@@ -197,10 +197,17 @@ void P25::hostname_lookup(QHostInfo i)
             debug << s;
         }
 	}
+	else {
+		qDebug() << "P25: hostname resolution failed for" << m_modeinfo.host;
+		m_modeinfo.status = DISCONNECTED;
+		emit update(m_modeinfo);
+		emit connect_failed("Cannot resolve hostname: " + m_modeinfo.host + "\n\nPlease check your network connection and try again.");
+	}
 }
 
 void P25::send_ping()
 {
+	if(!m_udp) return;
 	QByteArray out;
 	out.append(0xf0);
 	out.append(m_modeinfo.callsign.toUtf8());
@@ -220,6 +227,7 @@ void P25::send_ping()
 
 void P25::send_disconnect()
 {
+	if(!m_udp) return;
 	QByteArray out;
 	out.append(0xf1);
 	out.append(m_modeinfo.callsign.toUtf8());
@@ -239,6 +247,7 @@ void P25::send_disconnect()
 
 void P25::transmit()
 {
+	if(!m_udp) return;
 	QByteArray txdata;
 	uint8_t imbe[11];
 	int16_t pcm[160];

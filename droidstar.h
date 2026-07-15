@@ -141,6 +141,7 @@ public slots:
 	void m17_rate_changed(bool r) { emit m17_rate_changed((int)r); }
 	void process_connect();
 	void schedule_reconnect(int ms);
+	void handle_connect_failed(QString reason);
 	void press_tx();
 	void release_tx();
 	void click_tx(bool);
@@ -247,6 +248,11 @@ public slots:
 	QString get_arch() { return QSysInfo::currentCpuArchitecture(); }
 	QString get_build_abi() { return QSysInfo::buildAbi(); }
     QString get_software_build() { return VERSION_NUMBER; }
+#ifdef APP_VERSION
+	QString get_app_version() { return APP_VERSION; }
+#else
+	QString get_app_version() { return "0.0.0"; }
+#endif
 
 	void download_file(QString, bool u = false);
 	void file_downloaded(QString);

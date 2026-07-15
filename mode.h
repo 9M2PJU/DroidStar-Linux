@@ -139,6 +139,8 @@ signals:
     void request_connect_toggle();
 	// Request the application schedule a reconnect after the given milliseconds
 	void request_reconnect(int ms);
+	// Notify the application that a connection attempt failed with a reason
+	void connect_failed(QString reason);
 protected slots:
 	virtual void send_disconnect(){}
 	virtual void hostname_lookup(QHostInfo){}

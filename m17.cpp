@@ -333,34 +333,39 @@ void M17::process_udp()
 
 void M17::hostname_lookup(QHostInfo i)
 {
-	if (!i.addresses().isEmpty()) {
-		QByteArray out;
-		uint8_t cs[10];
-		memset(cs, ' ', 9);
-		memcpy(cs, m_modeinfo.callsign.toLocal8Bit(), m_modeinfo.callsign.size());
-		cs[8] = 'D';
-		cs[9] = 0x00;
-		M17::encode_callsign(cs);
-		out.append('C');
-		out.append('O');
-		out.append('N');
-		out.append('N');
-		out.append((char *)cs, 6);
-		out.append(m_module);
-		m_address = i.addresses().first();
-		m_udp = new QUdpSocket(this);
-		connect(m_udp, SIGNAL(readyRead()), this, SLOT(process_udp()));
-		m_udp->writeDatagram(out, m_address, m_modeinfo.port);
+	if (i.addresses().isEmpty()) {
+		qDebug() << "M17: hostname resolution failed for" << m_modeinfo.host;
+		m_modeinfo.status = DISCONNECTED;
+		emit update(m_modeinfo);
+		emit connect_failed("Cannot resolve hostname: " + m_modeinfo.host + "\n\nPlease check your network connection and try again.");
+		return;
+	}
+	QByteArray out;
+	uint8_t cs[10];
+	memset(cs, ' ', 9);
+	memcpy(cs, m_modeinfo.callsign.toLocal8Bit(), m_modeinfo.callsign.size());
+	cs[8] = 'D';
+	cs[9] = 0x00;
+	M17::encode_callsign(cs);
+	out.append('C');
+	out.append('O');
+	out.append('N');
+	out.append('N');
+	out.append((char *)cs, 6);
+	out.append(m_module);
+	m_address = i.addresses().first();
+	m_udp = new QUdpSocket(this);
+	connect(m_udp, SIGNAL(readyRead()), this, SLOT(process_udp()));
+	m_udp->writeDatagram(out, m_address, m_modeinfo.port);
 
-        if(m_debug){
-            QDebug debug = qDebug();
-            debug.noquote();
-            QString s = "CONN:";
-            for(int i = 0; i < out.size(); ++i){
-                s += " " + QString("%1").arg((uint8_t)out.data()[i], 2, 16, QChar('0'));
-            }
-            debug << s;
-        }
+	if(m_debug){
+		QDebug debug = qDebug();
+		debug.noquote();
+		QString s = "CONN:";
+		for(int j = 0; j < out.size(); ++j){
+			s += " " + QString("%1").arg((uint8_t)out.data()[j], 2, 16, QChar('0'));
+		}
+		debug << s;
 	}
 }
 
@@ -390,6 +395,7 @@ void M17::mmdvm_direct_connect()
 
 void M17::send_ping()
 {
+	if(!m_udp) return;
 	QByteArray out;
 	uint8_t cs[10];
 	memset(cs, ' ', 9);
@@ -430,6 +436,7 @@ void M17::send_disconnect()
     if(m_mdirect){
 		return;
 	}
+    if(!m_udp) return;
 
 	qDebug() << "send_disconnect()";
 	QByteArray out;
@@ -741,6 +748,7 @@ void M17::start_tx()
 
 void M17::transmit()
 {
+	if(!m_udp) return;
 	QByteArray txframe;
 	static uint16_t txstreamid = 0;
 	static uint16_t tx_cnt = 0;

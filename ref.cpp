@@ -385,10 +385,17 @@ void REF::hostname_lookup(QHostInfo i)
             debug << s;
         }
 	}
+	else {
+		qDebug() << "REF: hostname resolution failed for" << m_modeinfo.host;
+		m_modeinfo.status = DISCONNECTED;
+		emit update(m_modeinfo);
+		emit connect_failed("Cannot resolve hostname: " + m_modeinfo.host + "\n\nPlease check your network connection and try again.");
+	}
 }
 
 void REF::send_ping()
 {
+	if(!m_udp) return;
 	QByteArray out;
 	out.append(0x03);
 	out.append(0x60);
@@ -408,6 +415,7 @@ void REF::send_ping()
 
 void REF::send_disconnect()
 {
+	if(!m_udp) return;
 	QByteArray out;
 	out.append(0x05);
 	out.append('\x00');
@@ -487,6 +495,7 @@ void REF::start_tx()
 
 void REF::transmit()
 {
+	if(!m_udp) return;
 	uint8_t ambe[9];
 	uint8_t ambe_frame[72];
 	int16_t pcm[160];

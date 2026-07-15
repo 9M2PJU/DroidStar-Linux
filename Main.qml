@@ -28,13 +28,52 @@ ApplicationWindow {
 	height: 480
 	title: qsTr("DroidStar-9M2PJU")
 
-	palette.window: "#252424"
-	palette.button: "#252424"
-	palette.buttonText: "white"
-	palette.base: "black"
-	palette.text: "white"
-	palette.windowText: "white"
-	palette.highlight: "steelblue"
+    property int safeBottom: 0
+    property int safeTop: 0
+
+	palette.window: "#0f1923"
+	palette.button: "#162030"
+	palette.buttonText: "#e8edf2"
+	palette.base: "#0a1219"
+	palette.text: "#e8edf2"
+	palette.windowText: "#e8edf2"
+	palette.highlight: "#41cad2"
+	palette.mid: "#41cad2"
+	palette.midlight: "#41cad2"
+
+	// Theme color constants
+	readonly property color tBg: "#0f1923"
+	readonly property color tSurface: "#162030"
+	readonly property color tSurface2: "#1a2a3a"
+	readonly property color tAccent: "#41cad2"
+	readonly property color tAccentDim: "#1a3a5c"
+	readonly property color tText: "#e8edf2"
+	readonly property color tTextMuted: "#7a8a9a"
+	readonly property color tBorder: "#1a2a3a"
+	readonly property color tDanger: "#c0392b"
+	readonly property color tSuccess: "#27ae60"
+
+	// Spacing constants (8px grid)
+	readonly property int sp1: 4
+	readonly property int sp2: 8
+	readonly property int sp3: 12
+	readonly property int sp4: 16
+	readonly property int sp5: 24
+	readonly property int sp6: 32
+	readonly property int radius: 14
+	readonly property int radiusSm: 10
+
+	// Delayed update check — fires after app is fully loaded
+	Timer {
+		id: updateCheckTimer
+		interval: 3000
+		repeat: false
+		onTriggered: checkForUpdates()
+	}
+
+	Component.onCompleted: {
+		updateCheckTimer.start()
+	}
 
 	MessageDialog {
 		id: errorDialog
@@ -50,78 +89,278 @@ ApplicationWindow {
 		title: "No vocoder found"
 		text: "No hardware or software vocoder found for this mode. You can still connect, but you will not RX or TX any audio. See the project website (url on the About tab) for info on loading a sw vocoder, or use a USB AMBE dongle (and an OTG adapter on Android devices)"
 	}
-
-	TabBar {
-		id: bar
-		width: parent.width
-		currentIndex: swiper.currentIndex
-		background: Rectangle {
-			color: "steelblue"
-		}
-		TabButton {
-			id: mainButton
-			padding: 10
-			background: Rectangle {
-				color: bar.currentIndex === 0 ? "steelblue" : "#353535"
+	MessageDialog {
+		id: updateAvailableDialog
+		title: "Update Available"
+		text: ""
+		buttons: MessageDialog.Ok | MessageDialog.Cancel
+		onButtonClicked: {
+			if (clickedButton === MessageDialog.Ok) {
+				Qt.openUrlExternally("https://github.com/9M2PJU/DroidStar-Linux/releases")
 			}
-			text: qsTr("Main")
-		}
-		TabButton {
-			id: settingsButton
-			padding: 10
-			background: Rectangle {
-				color: bar.currentIndex === 1 ? "steelblue" : "#353535"
-			}
-			text: qsTr("Settings")
-		}
-		TabButton {
-			id: logButton
-			padding: 10
-			background: Rectangle {
-				color: bar.currentIndex === 2 ? "steelblue" : "#353535"
-			}
-			text: qsTr("Log")
-		}
-		TabButton {
-			id: hostsButton
-			padding: 10
-			background: Rectangle {
-				color: bar.currentIndex === 3 ? "steelblue" : "#353535"
-			}
-			text: qsTr("Hosts")
-		}
-		TabButton {
-			id: aboutButton
-			padding: 10
-			background: Rectangle {
-				color: bar.currentIndex === 4 ? "steelblue" : "#353535"
-			}
-			text: qsTr("About")
+			done()
 		}
 	}
+
+	// Check for updates on startup
+	function compareVersions(v1, v2) {
+		var a = v1.split('.').map(Number)
+		var b = v2.split('.').map(Number)
+		for (var i = 0; i < Math.max(a.length, b.length); i++) {
+			var av = a[i] || 0
+			var bv = b[i] || 0
+			if (av < bv) return -1
+			if (av > bv) return 1
+		}
+		return 0
+	}
+
+	function versionFromTag(tag) {
+		return tag.replace(/^DroidStar-9M2PJU-/, "").replace(/-android$/, "").replace(/-experimental$/, "")
+	}
+
+	function checkForUpdates() {
+		var currentVersion = droidstar.get_app_version()
+		if (currentVersion === "0.0.0") return
+
+		var url = "https://api.github.com/repos/9M2PJU/DroidStar-Linux/releases?per_page=10"
+		var xhr = new XMLHttpRequest()
+		xhr.onreadystatechange = function() {
+			if (xhr.readyState === XMLHttpRequest.DONE) {
+				if (xhr.status !== 200) return
+				try {
+					var releases = JSON.parse(xhr.responseText)
+					if (!releases || !releases.length) return
+
+					var latest = releases[0]
+					var latestVersion = versionFromTag(latest.tag_name)
+					if (latestVersion && compareVersions(currentVersion, latestVersion) < 0) {
+						updateAvailableDialog.text = "A new version is available!\n\n" +
+							"Current: v" + currentVersion + "\n" +
+							"Latest:  v" + latestVersion + "\n\n" +
+							"Click OK to open the download page, or Cancel to skip."
+						updateAvailableDialog.open()
+					}
+				} catch(e) {
+				}
+			}
+		}
+		xhr.open("GET", url)
+		xhr.setRequestHeader("Accept", "application/vnd.github+json")
+		xhr.send()
+	}
+
+	// Main content area
 	SwipeView {
 		id: swiper
-		width: parent.width
-		height: parent.height - 50
-		x: 0
-		y: 50
-		currentIndex: bar.currentIndex
+		anchors.top: parent.top
+		anchors.topMargin: safeTop
+		anchors.left: parent.left
+		anchors.right: parent.right
+		anchors.bottom: navBar.top
+		currentIndex: navBar.currentIndex
 		interactive: false
 
 		MainTab{
 			id: mainTab
+			width: swiper.width
+			height: swiper.height
 		}
 		SettingsTab{
 			id: settingsTab
+			width: swiper.width
+			height: swiper.height
 		}
 		LogTab{
 			id: logTab
+			width: swiper.width
+			height: swiper.height
 		}
 		HostsTab{
 			id: hostsTab
+			width: swiper.width
+			height: swiper.height
 		}
-		AboutTab{}
+		AboutTab{
+			width: swiper.width
+			height: swiper.height
+		}
 	}
+
+	// Bottom navigation bar — extends to real bottom of screen
+	Rectangle {
+		id: navBar
+		anchors.left: parent.left
+		anchors.right: parent.right
+		anchors.bottom: parent.bottom
+		height: 58 + safeBottom
+		color: main.tSurface
+
+		// Top border line
+		Rectangle {
+			anchors.top: parent.top
+			anchors.left: parent.left
+			anchors.right: parent.right
+			height: 1
+			color: main.tBorder
+		}
+
+		property int currentIndex: 0
+
+		// Content row sits above system navigation bar
+		Row {
+			anchors.top: parent.top
+			anchors.left: parent.left
+			anchors.right: parent.right
+			height: 58
+			spacing: 0
+
+			Repeater {
+				model: [
+					{ label: "Main", iconType: 0 },
+					{ label: "Settings", iconType: 1 },
+					{ label: "Log", iconType: 2 },
+					{ label: "Hosts", iconType: 3 },
+					{ label: "About", iconType: 4 }
+				]
+
+				delegate: Item {
+					width: navBar.width / 5
+					height: 58
+
+					// Active indicator dot above icon
+					Rectangle {
+						anchors.top: parent.top
+						anchors.topMargin: 4
+						anchors.horizontalCenter: parent.horizontalCenter
+						width: 4
+						height: 4
+						radius: 2
+						color: main.tAccent
+						visible: navBar.currentIndex === index
+					}
+
+					Column {
+						anchors.centerIn: parent
+						anchors.verticalCenterOffset: 2
+						spacing: 3
+
+						// Icon canvas
+						Canvas {
+							width: 24
+							height: 24
+							anchors.horizontalCenter: parent.horizontalCenter
+							property bool isActive: navBar.currentIndex === index
+							property int iconType: modelData.iconType
+							Component.onCompleted: requestPaint()
+							onIsActiveChanged: requestPaint()
+							onPaint: {
+								var ctx = getContext("2d")
+								ctx.reset()
+								var c = isActive ? main.tAccent : main.tTextMuted
+								ctx.fillStyle = c
+								ctx.strokeStyle = c
+								ctx.lineWidth = 2
+								ctx.lineCap = "round"
+								ctx.lineJoin = "round"
+								var w = width, h = height
+								var cx = w / 2, cy = h / 2
+
+								if (iconType === 0) {
+									// Main: radio antenna tower
+									// mast line
+									ctx.beginPath()
+									ctx.moveTo(cx, 5)
+									ctx.lineTo(cx, 11)
+									ctx.stroke()
+									// ball on top
+									ctx.beginPath()
+									ctx.arc(cx, 4, 2, 0, Math.PI * 2)
+									ctx.fill()
+									// tower legs
+									ctx.beginPath()
+									ctx.moveTo(cx - 7, 21)
+									ctx.lineTo(cx - 3, 11)
+									ctx.lineTo(cx + 3, 11)
+									ctx.lineTo(cx + 7, 21)
+									ctx.stroke()
+									// cross bar
+									ctx.beginPath()
+									ctx.moveTo(cx - 5, 16)
+									ctx.lineTo(cx + 5, 16)
+									ctx.stroke()
+								}
+								else if (iconType === 1) {
+									// Settings: gear
+									ctx.beginPath()
+									ctx.arc(cx, cy, 6, 0, Math.PI * 2)
+									ctx.stroke()
+									ctx.beginPath()
+									ctx.arc(cx, cy, 2.5, 0, Math.PI * 2)
+									ctx.fill()
+									for (var i = 0; i < 6; i++) {
+										var a = i * Math.PI / 3
+										ctx.beginPath()
+										ctx.moveTo(cx + Math.cos(a) * 7, cy + Math.sin(a) * 7)
+										ctx.lineTo(cx + Math.cos(a) * 10, cy + Math.sin(a) * 10)
+										ctx.stroke()
+									}
+								}
+								else if (iconType === 2) {
+									// Log: 3 horizontal lines
+									for (var j = 0; j < 3; j++) {
+										var y = 7 + j * 5
+										ctx.beginPath()
+										ctx.moveTo(4, y)
+										ctx.lineTo(w - 4, y)
+										ctx.stroke()
+									}
+								}
+								else if (iconType === 3) {
+									// Hosts: server stack (3 rounded rects)
+									for (var k = 0; k < 3; k++) {
+										var sy = 4 + k * 7
+										ctx.beginPath()
+										ctx.rect(3, sy, w - 6, 5)
+										ctx.stroke()
+									}
+								}
+								else if (iconType === 4) {
+									// About: info circle
+									ctx.beginPath()
+									ctx.arc(cx, cy, 9, 0, Math.PI * 2)
+									ctx.stroke()
+									ctx.beginPath()
+									ctx.arc(cx, cy - 4, 1.2, 0, Math.PI * 2)
+									ctx.fill()
+									ctx.beginPath()
+									ctx.moveTo(cx, cy - 1)
+									ctx.lineTo(cx, cy + 5)
+									ctx.stroke()
+								}
+							}
+						}
+
+						Text {
+							anchors.horizontalCenter: parent.horizontalCenter
+							text: modelData.label
+							color: navBar.currentIndex === index ? main.tAccent : main.tTextMuted
+							font.pixelSize: 10
+							font.bold: navBar.currentIndex === index
+						}
+					}
+
+					MouseArea {
+						anchors.fill: parent
+						onClicked: {
+							navBar.currentIndex = index
+						}
+					}
+				}
+			}
+		}
+	}
+
     DroidStar {
         id: droidstar
     }
@@ -170,7 +409,6 @@ ApplicationWindow {
         }
 
 		function onMode_changed() {
-			//console.log("onMode_changed ", mainTab.comboMode.find(droidstar.get_mode()), ":", droidstar.get_mode(), ":", droidstar.get_ref_host(), ":", droidstar.get_module());
 			mainTab.label1.text = droidstar.get_label1();
 			mainTab.label2.text = droidstar.get_label2();
 			mainTab.label3.text = droidstar.get_label3();
@@ -182,7 +420,6 @@ ApplicationWindow {
             droidstar.set_modelchange(false);
 			mainTab.comboMode.currentIndex = mainTab.comboMode.find(droidstar.get_mode());
             if(droidstar.get_mode() === "REF"){
-				//mainTab.comboMode.width = mainTab.width / 2;
 				mainTab.comboHost.visible = true;
 				mainTab.dtmflabel.visible = false;
 				mainTab.editIAXDTMF.visible = false;
@@ -195,12 +432,11 @@ ApplicationWindow {
 				mainTab.dmrtgidEdit.visible = false;
 				mainTab.comboM17CAN.visible = false;
 				mainTab.privateBox.visible = false;
-				mainTab.sliderMicGain.value = 0.0;
+				mainTab.sliderMicGain.value = 0.5;
 				logTab.smsedit.visible = false;
 				logTab.smsSendButton.visible = false;
             }
             if(droidstar.get_mode() === "DCS"){
-				//mainTab.comboMode.width = mainTab.width / 2;
 				mainTab.comboHost.visible = true;
 				mainTab.dtmflabel.visible = false;
 				mainTab.editIAXDTMF.visible = false;
@@ -213,12 +449,11 @@ ApplicationWindow {
 				mainTab.dmrtgidEdit.visible = false;
 				mainTab.comboM17CAN.visible = false;
 				mainTab.privateBox.visible = false;
-				mainTab.sliderMicGain.value = 0.0;
+				mainTab.sliderMicGain.value = 0.5;
 				logTab.smsedit.visible = false;
 				logTab.smsSendButton.visible = false;
             }
             if(droidstar.get_mode() === "XRF"){
-				//mainTab.comboMode.width = mainTab.width / 2;
 				mainTab.comboHost.visible = true;
 				mainTab.dtmflabel.visible = false;
 				mainTab.editIAXDTMF.visible = false;
@@ -231,12 +466,11 @@ ApplicationWindow {
 				mainTab.dmrtgidEdit.visible = false;
 				mainTab.comboM17CAN.visible = false;
 				mainTab.privateBox.visible = false;
-				mainTab.sliderMicGain.value = 0.0;
+				mainTab.sliderMicGain.value = 0.5;
 				logTab.smsedit.visible = false;
 				logTab.smsSendButton.visible = false;
             }
             if(droidstar.get_mode() === "YSF"){
-				//mainTab.comboMode.width = mainTab.width / 2;
 				mainTab.comboHost.visible = true;
 				mainTab.dtmflabel.visible = false;
 				mainTab.editIAXDTMF.visible = false;
@@ -254,7 +488,6 @@ ApplicationWindow {
 				logTab.smsSendButton.visible = false;
             }
 			if(droidstar.get_mode() === "FCS"){
-				//mainTab.comboMode.width = mainTab.width / 2;
 				mainTab.comboHost.visible = true;
 				mainTab.dtmflabel.visible = false;
 				mainTab.editIAXDTMF.visible = false;
@@ -272,7 +505,6 @@ ApplicationWindow {
 				logTab.smsSendButton.visible = false;
 			}
             if(droidstar.get_mode() === "DMR"){
-				//mainTab.comboMode.width = (mainTab.width / 5) - 5;
 				mainTab.comboHost.visible = true;
 				mainTab.dtmflabel.visible = false;
 				mainTab.editIAXDTMF.visible = false;
@@ -291,7 +523,6 @@ ApplicationWindow {
 				logTab.smsSendButton.visible = false;
             }
             if(droidstar.get_mode() === "P25"){
-				//mainTab.comboMode.width = mainTab.width / 2;
 				mainTab.comboHost.visible = true;
 				mainTab.dtmflabel.visible = false;
 				mainTab.editIAXDTMF.visible = false;
@@ -310,7 +541,6 @@ ApplicationWindow {
 				logTab.smsSendButton.visible = false;
             }
             if(droidstar.get_mode() === "NXDN"){
-				//mainTab.comboMode.width = mainTab.width / 2;
 				mainTab.comboHost.visible = true;
 				mainTab.dtmflabel.visible = false;
 				mainTab.editIAXDTMF.visible = false;
@@ -328,7 +558,6 @@ ApplicationWindow {
 				logTab.smsSendButton.visible = false;
             }
 			if(droidstar.get_mode() === "M17"){
-				//mainTab.comboMode.width = mainTab.width / 2;
 				mainTab.comboHost.visible = true;
 				mainTab.dtmflabel.visible = false;
 				mainTab.editIAXDTMF.visible = false;
@@ -348,7 +577,6 @@ ApplicationWindow {
 				logTab.smsSendButton.visible = true;
 			}
 			if(droidstar.get_mode() === "IAX"){
-				//mainTab.comboMode.width = mainTab.width / 2;
                 mainTab.comboHost.visible = true;
                 mainTab.dtmflabel.visible = true;
                 mainTab.editIAXDTMF.visible = true;
@@ -365,7 +593,6 @@ ApplicationWindow {
 				logTab.smsedit.visible = false;
 				logTab.smsSendButton.visible = false;
 			}
-			//mainTab.comboHost.contentItem.text = mainTab.comboHost.currentIndex === -1 ? "Host..." : mainTab.comboHost.currentText
         }
 		function onUpdate_data() {
 			mainTab.data1.text = droidstar.get_data1();
@@ -380,8 +607,6 @@ ApplicationWindow {
 			++mainTab.uitimer.rxcnt;
         }
 		function onUpdate_settings() {
-			//console.log("update_settings comboHost == ", mainTab.comboHost.find(droidstar.get_host()));
-			//console.log("update_settings comboModule == ", mainTab.comboModule.find(droidstar.get_module()));
 			settingsTab.ipv6.checked = droidstar.get_ipv6();
 			settingsTab.xrf2ref.checked = droidstar.get_xrf2ref();
 			settingsTab.toggleTX.checked = droidstar.get_toggletx();
@@ -470,15 +695,15 @@ ApplicationWindow {
 					mainTab.buttonTX.tx = false;
 					droidstar.tx_clicked(false);
 					mainTab.txtimer.running = false;
-					mainTab.btntxt.color = "black";
-					mainTab.btntxt.text = "TX";
+					mainTab.btntxt.color = main.tBg;
+					mainTab.btntxt.text = "PTT";
 				}
 				mainTab.connectbutton.text = "Connect";
 				mainTab.comboMode.enabled = true;
 				mainTab.comboHost.enabled = true;
 				mainTab.comboModule.enabled = true;
 				mainTab.buttonTX.enabled = false;
-				mainTab.btntxt.color = "steelblue";
+				mainTab.btntxt.color = main.tBg;
 				mainTab.data1.text = "";
 				mainTab.data2.text = "";
 				mainTab.data3.text = "";
@@ -520,13 +745,12 @@ ApplicationWindow {
 				}
 
 				mainTab.buttonTX.enabled = true;
-				mainTab.btntxt.color = "black";
+				mainTab.btntxt.color = main.tBg;
 				mainTab.agcBox.checked = true;
 			}
 			if(c === 3){
 			}
 			if(c === 4){
-				idcheckDialog.open();
 				onConnect_status_changed(0);
 			}
 			if(c === 5){
