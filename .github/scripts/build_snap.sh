@@ -99,9 +99,9 @@ sed -i "s/version: '1.0-commit'/version: '${VERSION}'/" "${SNAPCRAFT_YAML}"
 
 echo "=== snapcraft.yaml written to ${SNAPCRAFT_YAML} ==="
 
-# Build the snap using snapcraft in destructive mode (no LXD needed)
+# Build the snap using snapcraft (uses LXD to build in core24 base)
 cd "${PWD}"
-snapcraft --verbose --destructive-mode 2>&1 || {
+snapcraft --verbose 2>&1 || {
   echo "snapcraft build failed"
   exit 1
 }

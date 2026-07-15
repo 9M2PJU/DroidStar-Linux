@@ -119,20 +119,19 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Install snapcraft and build deps
+      - name: Install LXD and snapcraft
         run: |
+          sudo snap install lxd || true
           sudo snap install snapcraft --classic || true
-          sudo apt-get update -qq
-          sudo apt-get install -y build-essential cmake git \
-            qt6-base-dev qt6-base-private-dev qt6-declarative-dev \
-            qt6-multimedia-dev qt6-serialport-dev qt6-shadertools-dev
+          sudo lxd init --auto
+          sudo usermod -a -G lxd $USER
 
       - name: Build Snap
         env:
           SHORT_SHA: ${{ github.sha }}
         run: |
           SHORT_SHA_7=${GITHUB_SHA::7}
-          SHORT_SHA="${SHORT_SHA_7}" bash -eux .github/scripts/build_snap.sh
+          SHORT_SHA="${SHORT_SHA_7}" sg lxd -c "bash -eux .github/scripts/build_snap.sh"
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
@@ -176,8 +175,9 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release delete "${{ steps.tag.outputs.tag }}" --yes --cleanup-tag || true
+          sleep 5
 
-      - name: Create release and upload assets
+      - name: Create release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -199,5 +199,14 @@ jobs:
 
           All credit for the original DroidStar software goes to Doug McLain AD8DP.
           Original project: https://github.com/nostar/DroidStar" \
-            --target main \
-            artifacts/*
+            --target main
+
+      - name: Upload assets
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Upload assets one by one to avoid failures on large files
+          for f in artifacts/*; do
+            echo "Uploading $f..."
+            gh release upload "${{ steps.tag.outputs.tag }}" "$f" --clobber || echo "WARN: Failed to upload $f"
+          done
