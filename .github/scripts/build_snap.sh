@@ -61,12 +61,8 @@ parts:
       - build-essential
       - cmake
       - git
-      - qt6-base-dev
-      - qt6-base-private-dev
-      - qt6-declarative-dev
-      - qt6-multimedia-dev
-      - qt6-serialport-dev
-      - qt6-shadertools-dev
+    build-snaps:
+      - kde-qt6-core24-sdk
     stage-packages:
       - libqt6core6t64
       - libqt6gui6
