@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+  <url>
+    <loc>https://droidstar-linux.hamradio.my/</loc>
+    <lastmod>2026-07-15</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+    <image:image>
+      <image:loc>https://droidstar-linux.hamradio.my/logo.png</image:loc>
+      <image:title>DroidStar 9M2PJU for Linux logo</image:title>
+      <image:caption>Linux digital voice client for DMR, M17, YSF, P25, NXDN</image:caption>
+    </image:image>
+  </url>
+</urlset>

@@ -1,0 +1,21 @@
+{
+  "name": "DroidStar 9M2PJU for Linux",
+  "short_name": "DroidStar",
+  "description": "Linux digital voice client for DMR, M17, YSF, P25, NXDN amateur radio modes",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#041326",
+  "theme_color": "#041326",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["education", "utilities"],
+  "lang": "en",
+  "dir": "ltr"
+}

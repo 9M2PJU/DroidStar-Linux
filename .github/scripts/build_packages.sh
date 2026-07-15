@@ -17,7 +17,31 @@ echo "=== Building ${APP_DISPLAY} for ${ARCH} (version ${VERSION}) ==="
 export DEBIAN_FRONTEND=noninteractive
 
 echo "=== Installing build dependencies ==="
-apt-get update -qq
+
+# Retry apt-get update with fallback mirrors (ports.ubuntu.com can be flaky on ARM64)
+apt_retry() {
+  for attempt in 1 2 3 4 5; do
+    echo "apt-get update attempt ${attempt}/5..."
+    if apt-get update -qq; then
+      echo "apt-get update succeeded on attempt ${attempt}"
+      return 0
+    fi
+    echo "apt-get update failed on attempt ${attempt}, retrying in 10s..."
+    sleep 10
+  done
+  echo "=== apt-get update failed after 5 attempts, trying fallback mirror ==="
+  # Fallback: switch to a different mirror
+  if [ "$(dpkg --print-architecture)" = "arm64" ]; then
+    sed -i 's|http://ports.ubuntu.com/ubuntu-ports|http://de.ports.ubuntu.com/ubuntu-ports|g' /etc/apt/sources.list /etc/apt/sources.list.d/*.list 2>/dev/null || true
+  fi
+  apt-get update -qq || {
+    echo "=== Fallback mirror also failed, final attempt ==="
+    apt-get update -qq
+  }
+}
+
+apt_retry
+
 apt-get install -y --no-install-recommends \
   build-essential cmake git ca-certificates file \
   qt6-base-dev qt6-base-private-dev qt6-declarative-dev qt6-multimedia-dev \
