@@ -57,10 +57,17 @@ parts:
     cmake-parameters:
       - -DCMAKE_BUILD_TYPE=Release
       - -DCMAKE_INSTALL_PREFIX=/usr
+      - -DCMAKE_PREFIX_PATH=/snap/kde-qt6-core24-sdk/current/usr
+    build-environment:
+      - CMAKE_PREFIX_PATH: /snap/kde-qt6-core24-sdk/current/usr
+      - PATH: /snap/kde-qt6-core24-sdk/current/usr/bin:${PATH}
+      - PKG_CONFIG_PATH: /snap/kde-qt6-core24-sdk/current/usr/lib/${CRAFT_ARCH_TRIPLET_BUILD_FOR}/pkgconfig
+      - LD_LIBRARY_PATH: /snap/kde-qt6-core24-sdk/current/usr/lib/${CRAFT_ARCH_TRIPLET_BUILD_FOR}
     build-packages:
       - build-essential
       - cmake
       - git
+      - pkg-config
     build-snaps:
       - kde-qt6-core24-sdk
     stage-packages:
