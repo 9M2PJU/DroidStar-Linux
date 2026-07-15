@@ -86,7 +86,6 @@ parts:
       - qml6-module-qtquick-dialogs
       - qml6-module-qtcore
       - qml6-module-qtmultimedia
-      - qml6-module-qtnetwork
       - qml6-module-qtqml
       - qml6-module-qtqml-models
       - qml6-module-qtqml-workerscript

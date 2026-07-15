@@ -70,15 +70,16 @@ echo "=== Flatpak manifest written to ${MANIFEST} ==="
 
 # Build the flatpak
 BUILD_DIR="${PWD}/flatpak-build"
-rm -rf "${BUILD_DIR}"
-flatpak-builder --user --install "${BUILD_DIR}" "${MANIFEST}" || {
+REPO_DIR="${PWD}/flatpak-repo"
+rm -rf "${BUILD_DIR}" "${REPO_DIR}"
+flatpak-builder --user --repo="${REPO_DIR}" "${BUILD_DIR}" "${MANIFEST}" || {
   echo "flatpak-builder failed"
   exit 1
 }
 
 # Bundle into a .flatpak file
 FLATPAK_FILE="${DIST}/${APP_NAME}-9M2PJU-${VERSION}.flatpak"
-flatpak build-bundle "${HOME}/.local/share/flatpak" "${FLATPAK_FILE}" "${APP_ID}" || {
+flatpak build-bundle "${REPO_DIR}" "${FLATPAK_FILE}" "${APP_ID}" || {
   echo "flatpak build-bundle failed"
   exit 1
 }
