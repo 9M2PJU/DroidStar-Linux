@@ -24,8 +24,10 @@ import org.dudetronics.droidstar
 ApplicationWindow {
     id: main
 	visible: true
-	width: 340
-	height: 480
+	width: 480
+	height: 720
+	minimumWidth: 360
+	minimumHeight: 540
 	title: qsTr("DroidStar-9M2PJU")
 
     property int safeBottom: 0

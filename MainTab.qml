@@ -376,6 +376,10 @@ Item {
 		contentHeight: scrollContent.height
 		boundsBehavior: Flickable.StopAtBounds
 
+		ScrollBar.vertical: ScrollBar {
+			policy: ScrollBar.AsNeeded
+		}
+
 		Column {
 			id: scrollContent
 			width: parent.width

@@ -52,45 +52,7 @@ jobs:
             dist/*.rpm
             dist/*.AppImage
             dist/*.tar.gz
-          if-no-files-found: warn
-          retention-days: 14
-
-  build-arch:
-    name: Build Arch Linux pkg (${{ matrix.arch }})
-    runs-on: ubuntu-24.04
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - arch: x86_64
-            platform: linux/amd64
-          - arch: aarch64
-            platform: linux/arm64
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Set up QEMU for arm64
-        if: matrix.arch == 'aarch64'
-        uses: docker/setup-qemu-action@v3
-
-      - name: Build in Arch Linux container
-        run: |
-          set -euo pipefail
-          docker run --rm --platform ${{ matrix.platform }} \
-            -v "$PWD":/src -w /src \
-            -e ARCH=${{ matrix.arch }} \
-            -e SHORT_SHA=${GITHUB_SHA::7} \
-            archlinux:latest bash -eux /src/.github/scripts/build_arch.sh
-
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: DroidStar-9M2PJU-arch-${{ matrix.arch }}
-          path: dist/*.pkg.tar.zst
+            dist/*.pkg.tar.zst
           if-no-files-found: warn
           retention-days: 14
 
@@ -158,7 +120,7 @@ jobs:
 
   release:
     name: Publish Release
-    needs: [build, build-arch, build-flatpak, build-snap]
+    needs: [build, build-flatpak, build-snap]
     runs-on: ubuntu-24.04
     if: always() && github.ref == 'refs/heads/main' && needs.build.result == 'success'
 
