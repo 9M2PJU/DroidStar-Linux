@@ -19,59 +19,85 @@ export DEBIAN_FRONTEND=noninteractive
 echo "=== Installing build dependencies ==="
 
 # ports.ubuntu.com is flaky from GitHub Actions ARM64 runners.
-# Switch to a more reliable mirror before attempting apt-get update.
+# Ubuntu 24.04+ uses deb822 format (/etc/apt/sources.list.d/ubuntu.sources)
+# not the old .list format. We must handle both.
+switch_mirror() {
+  local new_mirror="$1"
+  echo "=== Switching mirror to: ${new_mirror} ==="
+  # Old format: /etc/apt/sources.list and *.list files
+  sed -i "s|http://[^ ]*ubuntu-ports|${new_mirror}|g" \
+    /etc/apt/sources.list 2>/dev/null || true
+  sed -i "s|http://[^ ]*ubuntu-ports|${new_mirror}|g" \
+    /etc/apt/sources.list.d/*.list 2>/dev/null || true
+  # New deb822 format: *.sources files (URIs: http://...)
+  sed -i "s|http://[^ ]*ubuntu-ports|${new_mirror}|g" \
+    /etc/apt/sources.list.d/*.sources 2>/dev/null || true
+}
+
 if [ "$(dpkg --print-architecture)" = "arm64" ]; then
-  echo "=== Switching ARM64 mirror to de.ports.ubuntu.com ==="
-  sed -i 's|http://ports.ubuntu.com/ubuntu-ports|http://de.ports.ubuntu.com/ubuntu-ports|g' \
-    /etc/apt/sources.list /etc/apt/sources.list.d/*.list 2>/dev/null || true
+  switch_mirror "http://de.ports.ubuntu.com/ubuntu-ports"
 fi
 
 # apt-get update returns exit 0 even when all fetches fail (treats them as warnings).
 # We must actually verify that package indexes were downloaded.
 apt_update_retry() {
   local mirrors=(
-    ""                                    # current mirror (already set above)
     "http://de.ports.ubuntu.com/ubuntu-ports"
     "http://ports.ubuntu.com/ubuntu-ports"
     "http://ftp.ports.ubuntu.com/ubuntu-ports"
     "http://mirror.freedif.org/ports.ubuntu.com/ubuntu-ports"
+    "http://us.ports.ubuntu.com/ubuntu-ports"
   )
   local mirror_idx=0
-  for attempt in 1 2 3 4 5 6 7 8; do
-    echo "=== apt-get update attempt ${attempt}/8 (mirror: ${mirrors[$mirror_idx]:-default}) ==="
+  for attempt in 1 2 3 4 5 6 7 8 9 10; do
+    echo "=== apt-get update attempt ${attempt}/10 ==="
     apt-get update 2>&1 || true
     # Verify that at least the main index was actually fetched
     if apt-cache show build-essential >/dev/null 2>&1; then
       echo "=== apt-get update succeeded (build-essential is available) ==="
       return 0
     fi
-    echo "=== apt-get update did not fetch indexes properly, retrying ==="
+    echo "=== apt-get update did not fetch indexes properly ==="
     # Try next mirror
-    mirror_idx=$(( (mirror_idx + 1) % ${#mirrors[@]} ))
-    local next_mirror="${mirrors[$mirror_idx]}"
-    if [ -n "$next_mirror" ]; then
-      echo "=== Switching to mirror: ${next_mirror} ==="
-      sed -i "s|http://[^ ]*ubuntu-ports|${next_mirror}|g" \
-        /etc/apt/sources.list /etc/apt/sources.list.d/*.list 2>/dev/null || true
+    mirror_idx=$(( mirror_idx + 1 ))
+    if [ ${mirror_idx} -ge ${#mirrors[@]} ]; then
+      mirror_idx=0
     fi
+    switch_mirror "${mirrors[$mirror_idx]}"
     sleep 5
   done
-  echo "=== FATAL: apt-get update failed after 8 attempts ==="
+  echo "=== FATAL: apt-get update failed after 10 attempts ==="
   return 1
 }
 
 apt_update_retry || exit 1
 
-apt-get install -y --no-install-recommends \
+# Retry apt-get install too (mirror might recover mid-download)
+apt_install_retry() {
+  local pkg_attempt
+  for pkg_attempt in 1 2 3; do
+    echo "=== apt-get install attempt ${pkg_attempt}/3 ==="
+    if apt-get install -y --no-install-recommends "$@"; then
+      return 0
+    fi
+    echo "=== apt-get install failed, retrying after apt-get update ==="
+    apt-get update 2>&1 || true
+    sleep 5
+  done
+  echo "=== FATAL: apt-get install failed after 3 attempts ==="
+  return 1
+}
+
+apt_install_retry \
   build-essential cmake git ca-certificates file \
   qt6-base-dev qt6-base-private-dev qt6-declarative-dev qt6-multimedia-dev \
-  qt6-serialport-dev qt6-shadertools-dev qt6-base-dev-tools qt6-declarative-dev-tools
+  qt6-serialport-dev qt6-shadertools-dev qt6-base-dev-tools qt6-declarative-dev-tools || exit 1
 
 # Packaging tools: dpkg-dev (deb), rpm + alien (rpm), wget + libfuse2 (AppImage),
 # libarchive-tools (bsdtar) + zstd (Arch .pkg.tar.zst)
-apt-get install -y --no-install-recommends dpkg-dev rpm alien wget
+apt_install_retry dpkg-dev rpm alien wget || exit 1
 apt-get install -y --no-install-recommends libfuse2t64 || apt-get install -y --no-install-recommends libfuse2 || true
-apt-get install -y --no-install-recommends libarchive-tools zstd
+apt_install_retry libarchive-tools zstd || exit 1
 
 # Fix git dubious ownership in container
 git config --global --add safe.directory /src || true
