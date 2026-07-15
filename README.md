@@ -4,8 +4,15 @@
 
 [![Build](https://img.shields.io/github/actions/workflow/status/9M2PJU/DroidStar-Linux/build.yml?style=for-the-badge&label=CI%2FCD)](../../actions)
 [![Release](https://img.shields.io/github/v/release/9M2PJU/DroidStar-Linux?style=for-the-badge&label=Latest%20Release)](../../releases)
+
+### Support the Project
+
+If you find this project useful, please consider supporting its development:
+
 [![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-9M2PJU-orange?style=for-the-badge&logo=buy-me-a-coffee)](https://www.buymeacoffee.com/9m2pju)
 [![Wise](https://img.shields.io/badge/Wise-Donate%209M2PJU-green?style=for-the-badge&logo=wise)](https://wise.com/pay/me/faizulz13)
+
+> **Sponsor this project on GitHub:** Click the **"Sponsor"** button at the top of this repository, or use the donation links above.
 
 ---
 
@@ -26,6 +33,7 @@
 - [Usage](#usage)
 - [Building from Source](#building-from-source)
 - [CI/CD Pipeline](#cicd-pipeline)
+- [Support & Donations](#support--donations)
 - [Credits & License](#credits--license)
 
 ---
@@ -536,13 +544,24 @@ This is an unofficial Linux packaging. The original project is an open source pr
 
 ---
 
-## Support
+## Support & Donations
 
-If you find this packaging useful, consider supporting:
+This project is maintained by **9M2PJU** as a free, open-source contribution to the amateur radio community. If you find this Linux packaging useful, please consider supporting its continued development.
+
+### Donate
+
+| Platform | Link |
+|----------|------|
+| **Buy Me A Coffee** | [https://www.buymeacoffee.com/9m2pju](https://www.buymeacoffee.com/9m2pju) |
+| **Wise** | [https://wise.com/pay/me/faizulz13](https://wise.com/pay/me/faizulz13) |
+| **GitHub Sponsors** | Click the **"Sponsor"** button at the top of this repository |
 
 [![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-9M2PJU-orange?style=for-the-badge&logo=buy-me-a-coffee)](https://www.buymeacoffee.com/9m2pju)
 [![Wise](https://img.shields.io/badge/Wise-Donate%209M2PJU-green?style=for-the-badge&logo=wise)](https://wise.com/pay/me/faizulz13)
 
-For issues with the **original DroidStar software**, please report them to the [upstream repository](https://github.com/nostar/DroidStar/issues).
+Every donation helps cover hosting costs, development time, and keeps the CI/CD pipeline running. Thank you for your support!
 
-For issues with **this Linux packaging** (build failures, missing dependencies, package format issues), please report them to [this repository's issues](../../issues).
+### Reporting Issues
+
+- **Original DroidStar software bugs**: [upstream repository issues](https://github.com/nostar/DroidStar/issues)
+- **Linux packaging issues** (build failures, missing dependencies, package format): [this repository's issues](../../issues)

@@ -1,0 +1,8 @@
+# GitHub Sponsors funding configuration
+# This adds a "Sponsor" button to the GitHub repository page
+
+# Buy Me A Coffee
+buy_me_a_coffee: 9m2pju
+
+# Custom donation links (Wise)
+custom: ["https://wise.com/pay/me/faizulz13"]
