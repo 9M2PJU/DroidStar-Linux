@@ -190,7 +190,7 @@ Item {
 				// --- Website link ---
 				Text {
 					anchors.horizontalCenter: parent.horizontalCenter
-					text: "<a href=\"https://github.com/9M2PJU/DroidStar-Linux\">github.com/9M2PJU/DroidStar-Linux</a>"
+					text: "<a href=\"https://droidstar-linux.hamradio.my\">droidstar-linux.hamradio.my</a>"
 					color: main.tAccent
 					linkColor: main.tAccent
 					font.pixelSize: 14
