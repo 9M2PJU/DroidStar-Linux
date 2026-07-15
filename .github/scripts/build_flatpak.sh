@@ -58,7 +58,7 @@ cat > "${MANIFEST}" <<EOF
       ],
       "config-opts": [
         "-DCMAKE_BUILD_TYPE=Release",
-        "-DCMAKE_INSTALL_PREFIX=/usr"
+        "-DCMAKE_INSTALL_PREFIX=/app"
       ]
     }
   ]
