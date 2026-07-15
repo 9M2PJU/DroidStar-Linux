@@ -83,6 +83,11 @@ parts:
       - libavutil-dev
       - libswresample-dev
       - libswscale-dev
+      - libproxy1v5
+      - libproxy-dev
+      - libcurl4
+      - libxml2-dev
+      - libsqlite3-dev
     build-snaps:
       - kde-qt6-core24-sdk
     stage-packages:
