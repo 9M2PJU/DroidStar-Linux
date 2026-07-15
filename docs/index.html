@@ -717,20 +717,33 @@ flatpak run org.dudetronics.droidstar</code>
     { ext: '.tar.gz',     icon: '&#x1f4e6;', label: 'Tarball' }
   ];
 
+  // Map arch tab names to all possible arch strings found in filenames
+  var ARCH_ALIASES = {
+    'amd64': ['amd64', 'x86_64', 'x64'],
+    'arm64': ['arm64', 'aarch64']
+  };
+
   function buildPkgGrid(assets, arch) {
     var gridId = 'pkg-grid-' + arch;
     var grid = document.getElementById(gridId);
     if (!grid) return;
     grid.innerHTML = '';
     var found = false;
+    var aliases = ARCH_ALIASES[arch] || [arch];
 
     PKG_FORMATS.forEach(function(fmt) {
       var asset = null;
       if (assets && assets.length) {
         for (var i = 0; i < assets.length; i++) {
           var name = assets[i].name.toLowerCase();
-          if (name.endsWith(fmt.ext.toLowerCase()) &&
-              (name.includes(arch) || name.includes(arch.replace('arm64','aarch64')))) {
+          if (!name.endsWith(fmt.ext.toLowerCase())) continue;
+          // Check if filename contains any of the arch aliases
+          var hasArch = aliases.some(function(a) { return name.includes(a); });
+          // If no arch in filename (e.g. flatpak, snap), treat as universal
+          var noArchInName = !ARCH_ALIASES['amd64'].concat(ARCH_ALIASES['arm64']).some(function(a) {
+            return name.includes(a);
+          });
+          if (hasArch || noArchInName) {
             asset = assets[i];
             break;
           }
