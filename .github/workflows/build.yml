@@ -119,11 +119,14 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Install LXD and snapcraft
+      - name: Setup LXD
+        uses: canonical/setup-lxd@v0.1.1
+        with:
+          mode: existing
+
+      - name: Install snapcraft
         run: |
-          sudo snap install lxd || true
-          sudo snap install snapcraft --classic || true
-          sudo lxd init --auto
+          sudo snap install snapcraft --classic
           sudo usermod -a -G lxd $USER
 
       - name: Build Snap
