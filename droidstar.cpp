@@ -41,17 +41,42 @@ void DroidStar::open_url(const QString &url)
 	if(!qurl.isValid() || qurl.scheme().isEmpty()){
 		qurl = QUrl::fromUserInput(url);
 	}
-	if(!QDesktopServices::openUrl(qurl)){
+	const QString urlStr = qurl.toString();
+
 #ifdef Q_OS_LINUX
+	// On Linux (especially inside an AppImage), QDesktopServices::openUrl()
+	// uses the xdg-desktop-portal D-Bus interface which can silently fail
+	// (returns true but opens nothing), so the xdg-open fallback never runs.
+	// Even when the fallback runs, QProcess inherits the AppImage's
+	// LD_LIBRARY_PATH / QT_PLUGIN_PATH, causing host tools (gio, xprop, etc.)
+	// to crash loading the bundled Ubuntu libraries.
+	//
+	// Fix: try xdg-open FIRST with a cleaned environment that strips AppImage
+	// env vars so subprocesses use host libraries. Fall back to
+	// QDesktopServices only if xdg-open is unavailable.
+	QStringList browsers = {"xdg-open", "gio", "x-www-browser", "firefox", "chromium"};
+	for(const QString &cmd : browsers){
+		QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+		// Strip AppImage-injected env vars so host tools use host libraries
+		env.remove("LD_LIBRARY_PATH");
+		env.remove("LD_PRELOAD");
+		env.remove("QT_PLUGIN_PATH");
+		env.remove("QML2_IMPORT_PATH");
+		env.remove("QT_QPA_PLATFORM_PLUGIN_PATH");
+		env.remove("QT_QPA_PLATFORM");
 		QStringList args;
-		args << qurl.toString();
-		if(!QProcess::startDetached("xdg-open", args)){
-			args.clear();
-			args << qurl.toString();
-			QProcess::startDetached("x-www-browser", args);
+		args << urlStr;
+		QProcess proc;
+		proc.setProcessEnvironment(env);
+		proc.setProgram(cmd);
+		proc.setArguments(args);
+		if(proc.startDetached()){
+			return;
 		}
-#endif
 	}
+#endif
+	// Last resort: let Qt try (works on Windows/macOS, and non-AppImage Linux)
+	QDesktopServices::openUrl(qurl);
 }
 
 DroidStar::DroidStar(QObject *parent) :
