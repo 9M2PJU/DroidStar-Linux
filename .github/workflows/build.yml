@@ -58,6 +58,10 @@ jobs:
   build-arch:
     name: Build Arch ${{ matrix.arch }}
     runs-on: ${{ matrix.runner }}
+    # aarch64 Arch has no official multi-arch Docker image; allow it to fail
+    # without blocking the release (x86_64 Arch pkg + Ubuntu-built arm64 pkgs
+    # are still published).
+    continue-on-error: ${{ matrix.arch == 'aarch64' }}
     strategy:
       fail-fast: false
       matrix:
@@ -92,7 +96,7 @@ jobs:
         with:
           name: DroidStar-9M2PJU-arch-${{ matrix.arch }}
           path: dist/*.pkg.tar.zst
-          if-no-files-found: error
+          if-no-files-found: warn
           retention-days: 14
 
   build-flatpak:
