@@ -72,19 +72,34 @@ apt_update_retry() {
 
 apt_update_retry || exit 1
 
-# Retry apt-get install too (mirror might recover mid-download)
+# Retry apt-get install too (mirror might recover mid-download).
+# Rotate mirrors on failure, same as apt_update_retry, because the current
+# mirror might be completely unreachable (not just slow).
 apt_install_retry() {
+  local mirrors=(
+    "http://de.ports.ubuntu.com/ubuntu-ports"
+    "http://ports.ubuntu.com/ubuntu-ports"
+    "http://ftp.ports.ubuntu.com/ubuntu-ports"
+    "http://mirror.freedif.org/ports.ubuntu.com/ubuntu-ports"
+    "http://us.ports.ubuntu.com/ubuntu-ports"
+  )
+  local mirror_idx=0
   local pkg_attempt
-  for pkg_attempt in 1 2 3; do
-    echo "=== apt-get install attempt ${pkg_attempt}/3 ==="
+  for pkg_attempt in 1 2 3 4 5; do
+    echo "=== apt-get install attempt ${pkg_attempt}/5 ==="
     if apt-get install -y --no-install-recommends "$@"; then
       return 0
     fi
-    echo "=== apt-get install failed, retrying after apt-get update ==="
+    echo "=== apt-get install failed, rotating mirror and retrying ==="
+    mirror_idx=$(( mirror_idx + 1 ))
+    if [ ${mirror_idx} -ge ${#mirrors[@]} ]; then
+      mirror_idx=0
+    fi
+    switch_mirror "${mirrors[$mirror_idx]}"
     apt-get update 2>&1 || true
     sleep 5
   done
-  echo "=== FATAL: apt-get install failed after 3 attempts ==="
+  echo "=== FATAL: apt-get install failed after 5 attempts ==="
   return 1
 }
 
