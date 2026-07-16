@@ -52,15 +52,53 @@ jobs:
             dist/*.rpm
             dist/*.AppImage
             dist/*.tar.gz
-            dist/*.pkg.tar.zst
           if-no-files-found: warn
+          retention-days: 14
+
+  build-arch:
+    name: Build Arch ${{ matrix.arch }}
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x86_64
+            runner: ubuntu-24.04
+            image: archlinux:latest
+          - arch: aarch64
+            runner: ubuntu-24.04-arm
+            image: archlinuxarm/archlinux
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Build in Arch Linux container (native Qt6)
+        run: |
+          set -euo pipefail
+          docker run --rm --platform linux/${{ matrix.arch == 'x86_64' && 'amd64' || 'arm64' }} \
+            -v "$PWD":/src -w /src \
+            -e ARCH=${{ matrix.arch }} \
+            -e SHORT_SHA=${GITHUB_SHA::7} \
+            ${{ matrix.image }} bash -eux /src/.github/scripts/build_arch.sh
+
+      - name: Fix permissions after container build
+        run: sudo chown -R $(id -u):$(id -g) dist build
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v5
+        with:
+          name: DroidStar-9M2PJU-arch-${{ matrix.arch }}
+          path: dist/*.pkg.tar.zst
+          if-no-files-found: error
           retention-days: 14
 
   build-flatpak:
     name: Build Flatpak
     runs-on: ubuntu-24.04
     continue-on-error: true
-
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -120,9 +158,9 @@ jobs:
 
   release:
     name: Publish Release
-    needs: [build, build-flatpak, build-snap]
+    needs: [build, build-arch, build-flatpak, build-snap]
     runs-on: ubuntu-24.04
-    if: always() && github.ref == 'refs/heads/main' && needs.build.result == 'success'
+    if: always() && github.ref == 'refs/heads/main' && needs.build.result == 'success' && needs.build-arch.result == 'success'
 
     steps:
       - name: Checkout

@@ -13,18 +13,21 @@ DIST="/src/dist"
 
 echo "=== Building ${APP_DISPLAY} Arch Linux package for ${ARCH} (version ${VERSION}) ==="
 
-# Fix git dubious ownership in container
-git config --global --add safe.directory /src || true
-
 echo "=== Installing build dependencies ==="
 pacman -Syu --noconfirm --needed \
   base-devel cmake git qt6-base qt6-declarative qt6-multimedia qt6-serialport \
   qt6-shadertools
 
+# Fix git dubious ownership in container (must run after git is installed)
+git config --global --add safe.directory /src || true
+
 echo "=== Configuring with CMake ==="
+# SKIP_QT_DEPLOY=ON: do not bundle Qt6 libraries/plugins into the install tree.
+# The package depends on system qt6-* packages instead, keeping it ~1MB vs ~98MB.
 cmake -B build -S . \
   -DCMAKE_BUILD_TYPE=Release \
-  -DCMAKE_INSTALL_PREFIX=/usr
+  -DCMAKE_INSTALL_PREFIX=/usr \
+  -DSKIP_QT_DEPLOY=ON
 
 echo "=== Building ==="
 cmake --build build -j"$(nproc)"
@@ -69,7 +72,7 @@ pkgname = ${PKG_NAME}
 pkgver = ${VERSION}
 pkgrel = 1
 pkgdesc = ${APP_DISPLAY} - amateur radio digital modes client
-url = https://github.com/nostar/DroidStar
+url = https://github.com/9M2PJU/DroidStar-Linux
 builddate = $(date +%s)
 packager = 9M2PJU <9M2PJU@users.noreply.github.com>
 size = $(du -sk "${PKGROOT}" | cut -f1)

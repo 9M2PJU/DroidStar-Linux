@@ -93,11 +93,9 @@ apt_install_retry \
   qt6-base-dev qt6-base-private-dev qt6-declarative-dev qt6-multimedia-dev \
   qt6-serialport-dev qt6-shadertools-dev qt6-base-dev-tools qt6-declarative-dev-tools || exit 1
 
-# Packaging tools: dpkg-dev (deb), rpm + alien (rpm), wget + libfuse2 (AppImage),
-# libarchive-tools (bsdtar) + zstd (Arch .pkg.tar.zst)
+# Packaging tools: dpkg-dev (deb), rpm + alien (rpm), wget + libfuse2 (AppImage)
 apt_install_retry dpkg-dev rpm alien wget || exit 1
 apt-get install -y --no-install-recommends libfuse2t64 || apt-get install -y --no-install-recommends libfuse2 || true
-apt_install_retry libarchive-tools zstd || exit 1
 
 # Fix git dubious ownership in container
 git config --global --add safe.directory /src || true
@@ -215,71 +213,13 @@ cd /src
 
 # ---------------------------------------------------------------------------
 # 4) .pkg.tar.zst (Arch Linux package)
+#    NOTE: The Arch package is now built natively inside an archlinux:latest
+#    container by build_arch.sh (see the build-arch CI job). Building it here
+#    in an Ubuntu container produced a binary linked against Ubuntu's Qt,
+#    which crashes on Arch due to protected-symbol ABI differences
+#    (GNU_PROPERTY_1_NEEDED_INDENT_EXTERN_ACCESS). This section is intentionally
+#    left empty; the Arch-native pkg is produced by build_arch.sh.
 # ---------------------------------------------------------------------------
-echo "=== Building .pkg.tar.zst ==="
-ARCH_PKG_NAME="${ARCH}"
-case "${ARCH}" in
-  amd64)  ARCH_PKG_NAME="x86_64" ;;
-  arm64)  ARCH_PKG_NAME="aarch64" ;;
-esac
-
-PKGROOT="${DIST}/pkg-root"
-rm -rf "${PKGROOT}"
-mkdir -p "${PKGROOT}"
-cp -a "${STAGE_ROOT}/." "${PKGROOT}/"
-
-# Desktop entry + icon
-mkdir -p "${PKGROOT}/usr/share/applications"
-cat > "${PKGROOT}/usr/share/applications/${PKG_NAME}.desktop" <<EOF
-[Desktop Entry]
-Name=${APP_DISPLAY}
-Comment=Amateur radio digital modes client (9M2PJU build)
-Exec=${INSTALL_PREFIX}/bin/${APP_NAME}
-Icon=${PKG_NAME}
-Terminal=false
-Type=Application
-Categories=HamRadio;Network;Audio;
-EOF
-
-if [ -f /src/images/droidstar.png ]; then
-  mkdir -p "${PKGROOT}/usr/share/icons/hicolor/256x256/apps"
-  cp /src/images/droidstar.png "${PKGROOT}/usr/share/icons/hicolor/256x256/apps/${PKG_NAME}.png"
-fi
-
-cat > "${PKGROOT}/.PKGINFO" <<EOF
-pkgname = ${PKG_NAME}
-pkgver = ${VERSION}
-pkgrel = 1
-pkgdesc = ${APP_DISPLAY} - amateur radio digital modes client
-url = https://github.com/9M2PJU/DroidStar-Linux
-builddate = $(date +%s)
-packager = 9M2PJU <9M2PJU@users.noreply.github.com>
-size = $(du -sk "${PKGROOT}" | cut -f1)
-arch = ${ARCH_PKG_NAME}
-license = GPL-3.0-or-later
-depend = qt6-base
-depend = qt6-declarative
-depend = qt6-multimedia
-depend = qt6-serialport
-depend = qt6-shadertools
-depend = hicolor-icon-theme
-EOF
-
-cat > "${PKGROOT}/.INSTALL" <<'EOF'
-post_install() {
-  update-desktop-database -q /usr/share/applications 2>/dev/null || true
-  gtk-update-icon-cache -q -t -f /usr/share/icons/hicolor 2>/dev/null || true
-}
-post_upgrade() {
-  post_install
-}
-EOF
-
-PKG_FILE="${DIST}/${APP_NAME}-9M2PJU-${VERSION}-${ARCH_PKG_NAME}.pkg.tar.zst"
-cd "${DIST}"
-bsdtar -czf - --format=ustar --uid 0 --gid 0 -C "${PKGROOT}" .PKGINFO .INSTALL $(ls -A "${PKGROOT}" | grep -v -E '^\.PKGINFO$|^\.INSTALL$') | zstd -q -o "$(basename "${PKG_FILE}")"
-cd /src
-rm -rf "${PKGROOT}"
 
 # ---------------------------------------------------------------------------
 # 5) .AppImage staging (the actual AppImage is built on the runner, not in
