@@ -56,22 +56,11 @@ jobs:
           retention-days: 14
 
   build-arch:
-    name: Build Arch ${{ matrix.arch }}
-    runs-on: ${{ matrix.runner }}
-    # aarch64 Arch has no official multi-arch Docker image; allow it to fail
-    # without blocking the release (x86_64 Arch pkg + Ubuntu-built arm64 pkgs
-    # are still published).
-    continue-on-error: ${{ matrix.arch == 'aarch64' }}
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - arch: x86_64
-            runner: ubuntu-24.04
-            image: archlinux:latest
-          - arch: aarch64
-            runner: ubuntu-24.04-arm
-            image: archlinuxarm/archlinux
+    name: Build Arch Linux pkg (x86_64)
+    runs-on: ubuntu-24.04
+    # NOTE: aarch64 Arch is not built because there is no official arm64
+    # Arch Linux Docker image (archlinux:latest is amd64-only). arm64 users
+    # get the Ubuntu-built deb/rpm/AppImage/tarball instead.
 
     steps:
       - name: Checkout
@@ -82,11 +71,11 @@ jobs:
       - name: Build in Arch Linux container (native Qt6)
         run: |
           set -euo pipefail
-          docker run --rm --platform linux/${{ matrix.arch == 'x86_64' && 'amd64' || 'arm64' }} \
+          docker run --rm --platform linux/amd64 \
             -v "$PWD":/src -w /src \
-            -e ARCH=${{ matrix.arch }} \
+            -e ARCH=x86_64 \
             -e SHORT_SHA=${GITHUB_SHA::7} \
-            ${{ matrix.image }} bash -eux /src/.github/scripts/build_arch.sh
+            archlinux:latest bash -eux /src/.github/scripts/build_arch.sh
 
       - name: Fix permissions after container build
         run: sudo chown -R $(id -u):$(id -g) dist build
@@ -94,9 +83,9 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v5
         with:
-          name: DroidStar-9M2PJU-arch-${{ matrix.arch }}
+          name: DroidStar-9M2PJU-arch-x86_64
           path: dist/*.pkg.tar.zst
-          if-no-files-found: warn
+          if-no-files-found: error
           retention-days: 14
 
   build-flatpak:
