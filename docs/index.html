@@ -1221,7 +1221,7 @@ flatpak run org.dudetronics.droidstar</code>
 (function () {
   'use strict';
   var REPO = '9M2PJU/DroidStar-Linux';
-  var API = 'https://counter.hamradio.my/api/gh/repos/' + REPO + '/releases/latest';
+  var API = 'https://stats.hamradio.my/api/gh/repos/' + REPO + '/releases/latest';
   var loading = document.getElementById('loading');
   var errorEl = document.getElementById('error');
   var content = document.getElementById('content');
@@ -1441,13 +1441,13 @@ flatpak run org.dudetronics.droidstar</code>
 </script>
 
 <!-- Download counter — counts clicks on package download buttons via
-     counter.hamradio.my Cloudflare Worker (not blocked by ad blockers).
+     stats.hamradio.my Cloudflare Worker (not blocked by ad blockers).
      One counter per package format (deb/rpm/pkg/appimage/flatpak/snap/tarball),
      combining amd64 + arm64 clicks. Uses event delegation on the pkg-grid
      containers since buttons are created dynamically. -->
 <script>
 (function() {
-  var API_BASE = 'https://counter.hamradio.my';
+  var API_BASE = 'https://stats.hamradio.my';
   var counterLabel = document.getElementById('counterLabel');
   // Map button label text → counter project name
   var LABEL_TO_PROJECT = {
