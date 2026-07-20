@@ -997,6 +997,10 @@
         <div id="notes-body"></div>
       </div>
     </div>
+
+    <div id="downloadCounter" style="margin-top:18px;font-size:0.9rem;color:var(--muted);text-align:center;">
+      <span id="counterLabel">Loading download counts&hellip;</span>
+    </div>
   </div>
 </section>
 
@@ -1432,6 +1436,63 @@ flatpak run org.dudetronics.droidstar</code>
   });
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape') hidePopup();
+  });
+})();
+</script>
+
+<!-- Download counter — counts clicks on package download buttons via
+     counter.hamradio.my Cloudflare Worker (not blocked by ad blockers).
+     One counter per package format (deb/rpm/pkg/appimage/flatpak/snap/tarball),
+     combining amd64 + arm64 clicks. Uses event delegation on the pkg-grid
+     containers since buttons are created dynamically. -->
+<script>
+(function() {
+  var API_BASE = 'https://counter.hamradio.my';
+  var counterLabel = document.getElementById('counterLabel');
+  // Map button label text → counter project name
+  var LABEL_TO_PROJECT = {
+    'DEB':       'droidstar-linux-deb',
+    'RPM':       'droidstar-linux-rpm',
+    'Arch':      'droidstar-linux-pkg',
+    'AppImage':  'droidstar-linux-appimage',
+    'Flatpak':   'droidstar-linux-flatpak',
+    'Snap':      'droidstar-linux-snap',
+    'Tarball':   'droidstar-linux-tarball'
+  };
+  var PROJECTS = ['droidstar-linux-deb','droidstar-linux-rpm','droidstar-linux-pkg',
+                  'droidstar-linux-appimage','droidstar-linux-flatpak','droidstar-linux-snap',
+                  'droidstar-linux-tarball'];
+  var counts = {};
+  function renderCounts() {
+    var parts = PROJECTS.map(function(p) {
+      var n = counts[p] || 0;
+      return '<strong style="color:var(--accent);">' + n + '</strong> ' + p.replace('droidstar-linux-','');
+    });
+    counterLabel.innerHTML = 'Downloads: ' + parts.join(' &middot; ');
+  }
+  function fetchCounts() {
+    Promise.all(PROJECTS.map(function(p) {
+      return fetch(API_BASE + '/' + p + '/').then(function(r) { return r.json(); }).then(function(d) { counts[p] = d.count || 0; });
+    })).then(renderCounts).catch(function() { counterLabel.textContent = ''; });
+  }
+  fetchCounts();
+  function bump(project) {
+    fetch(API_BASE + '/' + project + '/up').then(fetchCounts).catch(function() {});
+  }
+  // Event delegation on both pkg-grid containers (buttons are dynamic)
+  ['pkg-grid-amd64', 'pkg-grid-arm64'].forEach(function(gridId) {
+    var grid = document.getElementById(gridId);
+    if (grid) {
+      grid.addEventListener('click', function(e) {
+        var btn = e.target.closest('.pkg-btn');
+        if (!btn || btn.classList.contains('disabled')) return;
+        var labelEl = btn.querySelector('span:nth-child(2)');
+        if (!labelEl) return;
+        var label = labelEl.textContent.trim();
+        var project = LABEL_TO_PROJECT[label];
+        if (project) bump(project);
+      });
+    }
   });
 })();
 </script>
