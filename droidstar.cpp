@@ -286,6 +286,7 @@ void DroidStar::obtain_asl_wt_creds()
 {
     qDebug() << "obtain_asl_wt_creds() called";
     QNetworkAccessManager *manager = new QNetworkAccessManager(this);
+    manager->setCookieJar(new QNetworkCookieJar(manager));
 	QUrl url("https://www.allstarlink.org/portal/login.php");
 	QNetworkRequest request(url);
 	request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
