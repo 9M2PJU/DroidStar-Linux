@@ -14,9 +14,38 @@ DIST="/src/dist"
 echo "=== Building ${APP_DISPLAY} Arch Linux package for ${ARCH} (version ${VERSION}) ==="
 
 echo "=== Installing build dependencies ==="
-pacman -Syu --noconfirm --needed \
-  base-devel cmake git qt6-base qt6-declarative qt6-multimedia qt6-serialport \
-  qt6-shadertools
+# Retry pacman -Syu with mirror rotation. The default mirrorlist sometimes
+# serves a flaky mirror (e.g. fastly.mirror.pkgbuild.com) that times out
+# mid-download with "Operation too slow. Less than 1 bytes/sec". We rotate
+# through a few known-reliable mirrors and retry up to 5 times.
+PACMAN_MIRRORS=(
+  "https://geo.mirror.pkgbuild.com/\$repo/os/\$arch"
+  "https://mirror.rackspace.com/archlinux/\$repo/os/\$arch"
+  "https://mirrors.kernel.org/archlinux/\$repo/os/\$arch"
+  "https://mirrors.ocf.berkeley.edu/archlinux/\$repo/os/\$arch"
+  "https://mirror.leaseweb.net/archlinux/\$repo/os/\$arch"
+)
+
+pacman_succeeded=0
+for attempt in 1 2 3 4 5; do
+  mirror="${PACMAN_MIRRORS[$(( (attempt - 1) % ${#PACMAN_MIRRORS[@]} ))]}"
+  echo "--- pacman attempt ${attempt}/5 using mirror: ${mirror} ---"
+  # Point pacman at a single Server for this attempt.
+  printf 'Server = %s\n' "${mirror}" > /etc/pacman.d/mirrorlist
+  if pacman -Syu --noconfirm --needed \
+        base-devel cmake git qt6-base qt6-declarative qt6-multimedia qt6-serialport \
+        qt6-shadertools; then
+    pacman_succeeded=1
+    break
+  fi
+  echo "--- attempt ${attempt} failed, rotating mirror ---"
+  sleep 5
+done
+
+if [ "${pacman_succeeded}" -ne 1 ]; then
+  echo "### ERROR: pacman install failed after 5 attempts with mirror rotation." >&2
+  exit 1
+fi
 
 # Fix git dubious ownership in container (must run after git is installed)
 git config --global --add safe.directory /src || true
