@@ -1181,11 +1181,20 @@ void DroidStar::process_iax_hosts()
     m_customhosts = m_localhosts.split('\n');
     for (const auto& i : std::as_const(m_customhosts)){
         QStringList line = i.simplified().split(' ');
-        if(line.at(0) == "IAX"){
+        if(line.size() >= 3 && line.at(0) == "IAX"){
             if(line.at(2).simplified() == "wt"){
-                m_hostmap[line.at(1).simplified()] = line.at(1).simplified() + ".nodes.allstarlink.org,4569,allstar-public,allstar";// + line.at(3).simplified() + "," + line.at(4).simplified() + "," + line.at(5).simplified();
+                // WT (AllStarLink WebTransceiver) entry.
+                // Format: IAX <node> wt [<port>] [<user> <pass>]
+                // The hostname is always <node>.nodes.allstarlink.org and the
+                // IAX credentials must be allstar-public/allstar (m_wt is keyed
+                // off those literals in iax.cpp); real auth comes from the
+                // callingName token fetched by obtain_asl_wt_creds(). The port,
+                // however, MUST come from the user's host entry -- hardcoding
+                // 4569 breaks nodes that listen on a different IAX port.
+                QString port = (line.size() > 3) ? line.at(3).simplified() : QStringLiteral("4569");
+                m_hostmap[line.at(1).simplified()] = line.at(1).simplified() + ".nodes.allstarlink.org," + port + ",allstar-public,allstar";
             }
-            else{
+            else if(line.size() > 5){
                 m_hostmap[line.at(1).simplified()] = line.at(2).simplified() + "," + line.at(3).simplified() + "," + line.at(4).simplified() + "," + line.at(5).simplified();
             }
         }
