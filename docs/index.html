@@ -971,7 +971,7 @@
     <div id="loading" class="state">Checking for latest release&hellip;</div>
     <div id="error" class="state error" style="display:none;"></div>
     <div id="content" style="display:none;">
-      <span class="version-badge" id="version-badge" aria-label="Version">v&mdash;</span>
+      <span class="version-badge" id="version-badge" aria-label="Version">v-</span>
       <h2>Latest Build</h2>
       <p class="meta" id="meta">&nbsp;</p>
 
@@ -1071,17 +1071,17 @@
     <h3><span class="icon" aria-hidden="true">&#x1f527;</span>What's New</h3>
     <p>This build includes the redesigned UI and crash guards from the experimental branch:</p>
     <ul>
-      <li><strong>WT mode IAX port fix</strong> &mdash; the app was hardcoding the IAX UDP port to 4569 for AllStarLink WebTransceiver entries, ignoring the port in your custom host list. Nodes listening on a non-default port now connect correctly. Format: <code>IAX &lt;node&gt; wt &lt;port&gt;</code>.</li>
-      <li><strong>AllStarLink WT mode fix</strong> &mdash; fixed login failing with correct ASL portal password. The app was discarding the session cookie between login and web transceiver token requests.</li>
-      <li><strong>Keyboard shortcuts</strong> &mdash; <strong>Enter</strong> to connect/disconnect, <strong>Esc</strong> to disconnect, <strong>Space</strong> for Push to Talk (or toggle TX if enabled in Settings).</li>
-      <li><strong>Redesigned UI</strong> &mdash; bottom navigation bar with custom icons, card-based layout, dark theme with cyan accent (#41cad2).</li>
-      <li><strong>Crash-proof error handling</strong> &mdash; comprehensive null pointer guards across all modes. The app never exits on connection errors &mdash; it shows a user-friendly popup instead.</li>
-      <li><strong>DMR connection retry &amp; timeout</strong> &mdash; 3 retry attempts with 10s timeout. Clear error popups for server rejection (MSTNAK), server shutdown (MSTCL), DNS failures, and unreachable hosts.</li>
-      <li><strong>In-app update checker</strong> &mdash; checks GitHub releases on startup and notifies you when a new version is available.</li>
-      <li><strong>Built-in vocoders</strong> &mdash; AMBE, Codec 2, and IMBE vocoders compiled directly into the binary. No external vocoder plugin download needed.</li>
-      <li><strong>USB vocoder support</strong> &mdash; connect an external AMBE vocoder or MMDVM modem over USB serial.</li>
-      <li><strong>Arch Linux ARM64</strong> &mdash; .pkg.tar.zst now available for both x86_64 and aarch64.</li>
-      <li><strong>7 package formats</strong> &mdash; .deb, .rpm, .pkg.tar.zst, .AppImage, .flatpak, .snap, and .tar.gz for x86_64 and ARM64.</li>
+      <li><strong>WT mode IAX port fix</strong>: the app was hardcoding the IAX UDP port to 4569 for AllStarLink WebTransceiver entries, ignoring the port in your custom host list. Nodes listening on a non-default port now connect correctly. Format: <code>IAX &lt;node&gt; wt &lt;port&gt;</code>.</li>
+      <li><strong>AllStarLink WT mode fix</strong>: fixed login failing with correct ASL portal password. The app was discarding the session cookie between login and web transceiver token requests.</li>
+      <li><strong>Keyboard shortcuts</strong>: <strong>Enter</strong> to connect/disconnect, <strong>Esc</strong> to disconnect, <strong>Space</strong> for Push to Talk (or toggle TX if enabled in Settings).</li>
+      <li><strong>Redesigned UI</strong>: bottom navigation bar with custom icons, card-based layout, dark theme with cyan accent (#41cad2).</li>
+      <li><strong>Crash-proof error handling</strong>: comprehensive null pointer guards across all modes. The app never exits on connection errors - it shows a user-friendly popup instead.</li>
+      <li><strong>DMR connection retry &amp; timeout</strong>: 3 retry attempts with 10s timeout. Clear error popups for server rejection (MSTNAK), server shutdown (MSTCL), DNS failures, and unreachable hosts.</li>
+      <li><strong>In-app update checker</strong>: checks GitHub releases on startup and notifies you when a new version is available.</li>
+      <li><strong>Built-in vocoders</strong>: AMBE, Codec 2, and IMBE vocoders compiled directly into the binary. No external vocoder plugin download needed.</li>
+      <li><strong>USB vocoder support</strong>: connect an external AMBE vocoder or MMDVM modem over USB serial.</li>
+      <li><strong>Arch Linux ARM64</strong>: .pkg.tar.zst now available for both x86_64 and aarch64.</li>
+      <li><strong>7 package formats</strong>: .deb, .rpm, .pkg.tar.zst, .AppImage, .flatpak, .snap, and .tar.gz for x86_64 and ARM64.</li>
     </ul>
   </div>
 
@@ -1107,7 +1107,7 @@
     <div class="feature">
       <div class="icon" aria-hidden="true">&#x1f3a4;</div>
       <h4>Built-in Vocoders</h4>
-      <p>AMBE, Codec 2 &amp; IMBE compiled in &mdash; no external plugin download required.</p>
+      <p>AMBE, Codec 2 &amp; IMBE compiled in - no external plugin download required.</p>
     </div>
     <div class="feature">
       <div class="icon" aria-hidden="true">&#x1f50b;</div>
@@ -1159,7 +1159,7 @@ flatpak run org.dudetronics.droidstar</code>
     <code>sudo snap install DroidStar-9M2PJU-*.snap --dangerous</code>
 
     <p style="margin-top:16px; color:var(--accent); font-size:0.88rem;">
-      <strong>First run?</strong> Configure your callsign, DMR ID, and host in Settings. Vocoders are built in &mdash; no extra downloads needed.
+      <strong>First run?</strong> Configure your callsign, DMR ID, and host in Settings. Vocoders are built in - no extra downloads needed.
     </p>
 
     <h4>Keyboard Shortcuts</h4>
@@ -1299,7 +1299,7 @@ flatpak run org.dudetronics.droidstar</code>
       btn.innerHTML =
         '<span class="pkg-icon" aria-hidden="true">' + fmt.icon + '</span>' +
         '<span>' + fmt.label + '</span>' +
-        '<span class="pkg-size">' + (asset ? fmtSize(asset.size) : '&mdash;') + '</span>';
+        '<span class="pkg-size">' + (asset ? fmtSize(asset.size) : '-') + '</span>';
       grid.appendChild(btn);
     });
 
@@ -1376,7 +1376,7 @@ flatpak run org.dudetronics.droidstar</code>
     <div class="modal-heart" aria-hidden="true">&#x1f495;</div>
     <h3 id="donateModalTitle">Enjoying DroidStar 9M2PJU?</h3>
     <p>
-      This is a <strong>ham-to-ham project</strong> &mdash; built and maintained by a single ham
+      This is a <strong>ham-to-ham project</strong>: built and maintained by a single ham
       operator (9M2PJU), not a company. There's no team, no budget, no ads, and no paywall.
       If you appreciate the work and want to keep the updates coming, a donation of any size
       would mean a lot. 73!
@@ -1444,7 +1444,7 @@ flatpak run org.dudetronics.droidstar</code>
 })();
 </script>
 
-<!-- Download counter — counts clicks on package download buttons via
+<!-- Download counter - counts clicks on package download buttons via
      stats.hamradio.my Cloudflare Worker (not blocked by ad blockers).
      One counter per package format (deb/rpm/pkg/appimage/flatpak/snap/tarball),
      combining amd64 + arm64 clicks. Uses event delegation on the pkg-grid
