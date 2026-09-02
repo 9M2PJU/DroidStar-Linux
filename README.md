@@ -318,32 +318,40 @@ sudo zypper install snapd
 sudo systemctl enable --now snapd
 ```
 
-**Install:**
+**Install from Snap Store:**
 ```bash
-# 1. Download the .snap file
+sudo snap install 9m2pju-droidstar
+```
+
+Or install the latest build from the edge channel:
+```bash
+sudo snap install 9m2pju-droidstar --edge
+```
+
+**Alternative (manual .snap file):**
+```bash
+# 1. Download the .snap file from GitHub Releases
 wget https://github.com/9M2PJU/DroidStar-Linux/releases/latest/download/DroidStar-9M2PJU.snap
 
-# 2. Install (--dangerous is needed because the snap is not from the Snap Store)
+# 2. Install manually
 sudo snap install --dangerous ./DroidStar-9M2PJU.snap
-
-# 3. Run
-snap run droidstar-9m2pju
 ```
 
-**One-liner:**
+**Run:**
 ```bash
-wget https://github.com/9M2PJU/DroidStar-Linux/releases/latest/download/DroidStar-9M2PJU.snap -O /tmp/droidstar.snap && sudo snap install --dangerous /tmp/droidstar.snap && snap run droidstar-9m2pju
+9m2pju-droidstar
+# Or:
+snap run 9m2pju-droidstar
 ```
 
-**Connect audio interfaces (if needed):**
+**Connect hardware serial dongle (if using ThumbDV / DVstick30 / serial modems):**
 ```bash
-sudo snap connect droidstar-9m2pju:audio-record :audio-record
-sudo snap connect droidstar-9m2pju:serial-port :serial-port
+sudo snap connect 9m2pju-droidstar:serial-port :serial-port
 ```
 
 **Uninstall:**
 ```bash
-sudo snap remove droidstar-9m2pju
+sudo snap remove 9m2pju-droidstar
 ```
 
 ---
@@ -422,7 +430,7 @@ Launch DroidStar from your application menu, or from the terminal:
 ```bash
 DroidStar          # if installed via deb/rpm/pkg
 flatpak run org.dudetronics.DroidStar9M2PJU   # if installed via Flatpak
-snap run droidstar-9m2pju                      # if installed via Snap
+9m2pju-droidstar   # if installed via Snap
 ./DroidStar-9M2PJU-*.AppImage                  # if using AppImage
 ```
 

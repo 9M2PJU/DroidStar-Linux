@@ -126,8 +126,6 @@ jobs:
 
       - name: Setup LXD
         uses: canonical/setup-lxd@v0.1.1
-        with:
-          mode: existing
 
       - name: Install snapcraft
         run: |
@@ -148,6 +146,16 @@ jobs:
           path: dist/*.snap
           if-no-files-found: warn
           retention-days: 14
+
+      - name: Publish to Snap Store
+        if: github.ref == 'refs/heads/main' && secrets.SNAPCRAFT_STORE_CREDENTIALS != ''
+        uses: snapcore/action-publish@v1
+        env:
+          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+        with:
+          store_login: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+          snap: dist/*.snap
+          release: edge,stable
 
   release:
     name: Publish Release
@@ -200,7 +208,7 @@ jobs:
           - **.pkg.tar.zst** - Arch Linux (x86_64, aarch64)
           - **.AppImage** - Portable single-file (amd64, arm64)
           - **.flatpak** - Flatpak bundle (x86_64) *(may not be available yet)*
-          - **.snap** - Snap package (x86_64) *(may not be available yet)*
+          - **.snap** - Snap package (x86_64, Snap Store: 9m2pju-droidstar)
           - **.tar.gz** - Portable tarball (amd64, arm64)
 
           Rebuilt automatically on every push to main.
