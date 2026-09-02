@@ -48,6 +48,7 @@ grade: stable
 confinement: strict
 base: core24
 icon: snap/gui/icon.png
+license: GPL-3.0-or-later
 
 apps:
   9m2pju-droidstar:
