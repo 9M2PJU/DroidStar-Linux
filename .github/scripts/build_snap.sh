@@ -25,7 +25,7 @@ Terminal=false
 Type=Application
 Categories=HamRadio;Network;Audio;
 EOF
-cp "${PWD}/images/droidstar.png" "${PWD}/snap/gui/icon.png"
+cp "${PWD}/Images.xcassets/AppIcon.appiconset/1024.png" "${PWD}/snap/gui/icon.png"
 
 # Generate snapcraft.yaml in the source root
 SNAPCRAFT_YAML="${PWD}/snap/snapcraft.yaml"
@@ -47,7 +47,7 @@ version: '1.0-commit'
 grade: stable
 confinement: strict
 base: core24
-icon: images/droidstar.png
+icon: snap/gui/icon.png
 
 apps:
   9m2pju-droidstar:
