@@ -148,7 +148,8 @@ jobs:
           retention-days: 14
 
       - name: Publish to Snap Store
-        if: github.ref == 'refs/heads/main' && secrets.SNAPCRAFT_STORE_CREDENTIALS != ''
+        if: github.ref == 'refs/heads/main'
+        continue-on-error: true
         uses: snapcore/action-publish@v1
         env:
           SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
