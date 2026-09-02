@@ -147,6 +147,12 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
 
+      - name: Find built snap
+        id: snap
+        run: |
+          SNAP_FILE=$(ls dist/*.snap | head -n 1)
+          echo "file=${SNAP_FILE}" >> "$GITHUB_OUTPUT"
+
       - name: Publish to Snap Store
         if: github.ref == 'refs/heads/main'
         continue-on-error: true
@@ -155,7 +161,7 @@ jobs:
           SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
         with:
           store_login: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
-          snap: dist/*.snap
+          snap: ${{ steps.snap.outputs.file }}
           release: edge,stable
 
   release:
