@@ -13,6 +13,20 @@ echo "=== Building ${APP_DISPLAY} Snap (version ${VERSION}) ==="
 
 mkdir -p "${DIST}"
 
+# Generate desktop file and icon in snap/gui/
+mkdir -p "${PWD}/snap/gui"
+cat > "${PWD}/snap/gui/9m2pju-droidstar.desktop" <<'EOF'
+[Desktop Entry]
+Name=DroidStar-9M2PJU
+Comment=Amateur radio digital modes client (9M2PJU build)
+Exec=9m2pju-droidstar
+Icon=${SNAP}/meta/gui/icon.png
+Terminal=false
+Type=Application
+Categories=HamRadio;Network;Audio;
+EOF
+cp "${PWD}/images/droidstar.png" "${PWD}/snap/gui/icon.png"
+
 # Generate snapcraft.yaml in the source root
 SNAPCRAFT_YAML="${PWD}/snap/snapcraft.yaml"
 mkdir -p "$(dirname "${SNAPCRAFT_YAML}")"
@@ -38,7 +52,6 @@ icon: images/droidstar.png
 apps:
   9m2pju-droidstar:
     command: usr/bin/DroidStar
-    desktop: usr/share/applications/9m2pju-droidstar.desktop
     plugs:
       - network
       - network-bind
@@ -54,21 +67,6 @@ parts:
   droidstar:
     source: .
     plugin: cmake
-    override-build: |
-      craftctl default
-      mkdir -p "${CRAFT_PART_INSTALL}/usr/share/applications"
-      cat > "${CRAFT_PART_INSTALL}/usr/share/applications/9m2pju-droidstar.desktop" <<'EOF'
-[Desktop Entry]
-Name=DroidStar-9M2PJU
-Comment=Amateur radio digital modes client (9M2PJU build)
-Exec=9m2pju-droidstar
-Icon=/usr/share/icons/hicolor/256x256/apps/9m2pju-droidstar.png
-Terminal=false
-Type=Application
-Categories=HamRadio;Network;Audio;
-EOF
-      mkdir -p "${CRAFT_PART_INSTALL}/usr/share/icons/hicolor/256x256/apps"
-      cp images/droidstar.png "${CRAFT_PART_INSTALL}/usr/share/icons/hicolor/256x256/apps/9m2pju-droidstar.png"
     cmake-parameters:
       - -DCMAKE_BUILD_TYPE=Release
       - -DCMAKE_INSTALL_PREFIX=/usr
